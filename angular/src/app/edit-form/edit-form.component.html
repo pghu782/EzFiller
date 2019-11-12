@@ -1,11 +1,28 @@
 <div class="c-edit-form__container">
-  <input [value]="snapshot.fillName" />
-  <input class="hotkey-input" maxlength="15" [value]="snapshot.hotkey ? snapshot.hotkey : ''" />
-
-  <input [value]="snapshot.url" />
-
-  <textarea>{{ snapshot.preview }}</textarea>
-
-  <button class="btn">Save</button>
-  <button class="btn">Cancel</button>
+  <div class="d-flex justify-content-center">
+    <table class="c-edit-form__table">
+      <tr>
+        <td class="table-label">Fill name</td>
+        <td><input type="text" class="form-control" [(ngModel)]="snapshot.fillName" /></td>
+      </tr>
+      <tr>
+        <td class="table-label">Hotkey</td>
+        <td>
+          <input type="text" class="form-control hotkey-input" maxlength="15" [(ngModel)]="snapshot.hotkey" />
+        </td>
+      </tr>
+      <tr>
+        <td class="table-label">URL</td>
+        <td>
+          <input type="text" class="form-control" [(ngModel)]="snapshot.url" />
+        </td>
+      </tr>
+      <tr>
+        <td class="table-label">JSON</td>
+        <td>
+          <textarea class="form-control" name="snapshotJson" [(ngModel)]="snapshot.preview"></textarea>
+        </td>
+      </tr>
+    </table>
+  </div>
 </div>

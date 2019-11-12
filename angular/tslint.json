@@ -1,5 +1,5 @@
 {
-  "extends": "tslint:recommended",
+  "extends": ["tslint:latest", "tslint-config-prettier"],
   "rulesDirectory": ["codelyzer"],
   "rules": {
     "array-type": false,
@@ -10,17 +10,11 @@
     "import-blacklist": [true, "rxjs/Rx"],
     "interface-name": false,
     "max-classes-per-file": false,
-    "max-line-length": [true, 180],
     "member-access": false,
     "member-ordering": [
       true,
       {
-        "order": [
-          "static-field",
-          "instance-field",
-          "static-method",
-          "instance-method"
-        ]
+        "order": ["static-field", "instance-field", "static-method", "instance-method"]
       }
     ],
     "no-consecutive-blank-lines": false,
@@ -35,7 +29,6 @@
     "object-literal-key-quotes": [true, "as-needed"],
     "object-literal-sort-keys": false,
     "ordered-imports": false,
-    "quotemark": [true, "single"],
     "trailing-comma": false,
     "no-output-on-prefix": true,
     "use-input-property-decorator": true,

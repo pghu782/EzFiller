@@ -1,15 +1,20 @@
+export enum Modes {
+  List = 1,
+  Edit
+}
+
 export interface FormSnapshot {
   content: any[];
   error: boolean;
 }
 
-export interface FormData {
+export class FormData {
   id: string;
   url: string;
   fillName: string;
-  fill: any[];
   preview: string;
   hotkey?: string;
   comment?: string;
   editMode?: boolean;
+  fill: any;
 }

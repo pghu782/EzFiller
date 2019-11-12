@@ -4,6 +4,7 @@ $grey-theme: rgb(221, 218, 218);
 
 .popupContainer {
   width: 525px;
+  padding: 1rem;
 }
 
 .c-debug__output-container {
@@ -20,7 +21,6 @@ a * {
 }
 
 .formsTableContainer {
-  margin: 1rem;
 }
 
 .formsTable {
@@ -38,6 +38,10 @@ a * {
 
 .hotkey-input {
   width: 4rem;
+}
+
+.table-label {
+  font-weight: bold;
 }
 
 thead th {
@@ -136,10 +140,26 @@ td.btnHighlight:hover {
   display: inline-block;
   text-align: center;
 }
+
+.c-edit-form__table {
+  td {
+    padding: 0.5rem;
+  }
+  input {
+    font-size: $base-font-size;
+    padding: 0.5rem;
+    border-radius: 9px;
+  }
+  textarea {
+    font-size: $base-font-size;
+    width: 300px;
+    height: 150px;
+  }
+}
 #textRuler {
   position: absolute;
   visibility: hidden;
   height: auto;
   width: auto;
-  white-space: nowrap; /* Thanks to Herb Caudill comment */
+  white-space: nowrap;
 }

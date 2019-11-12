@@ -1,20 +1,20 @@
 // prettier-ignore
 import { ChangeDetectorRef,Component,Inject,ChangeDetectionStrategy,
-  OnInit, AfterViewInit } from "@angular/core";
-import { DatePipe } from "@angular/common";
-import { Subject } from "rxjs";
-import { tap } from "rxjs/operators";
-import { TAB_ID } from "./tab-id.injector";
-import * as uuid from "uuid";
-import { Router } from "@angular/router";
+  OnInit, AfterViewInit, Input } from "@angular/core";
+import { DatePipe } from '@angular/common';
+import { Subject } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { TAB_ID } from './tab-id.injector';
+import * as uuid from 'uuid';
+import { Router } from '@angular/router';
 
-import { FormData, FormSnapshot } from "./shared/app.models";
-import { AppService } from "./shared/app.service";
+import { FormData, FormSnapshot, Modes } from './shared/app.models';
+import { AppService } from './shared/app.service';
 
 @Component({
-  selector: "app-root",
-  templateUrl: "./app.component.html",
-  styleUrls: ["./app.component.scss"]
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit, AfterViewInit {
   private readonly _message = new Subject<string>();
@@ -22,9 +22,17 @@ export class AppComponent implements OnInit, AfterViewInit {
   public dataSource: FormData[] = [];
   public currentUrl: string;
   public newFillName: string;
+  public Modes = Modes;
+  @Input()
+  public currentMode = Modes.List;
+
+  public currentSnapshot: FormData;
+  public editError: boolean = false;
 
   readonly tabId = this._tabId;
-  readonly message$ = this._message.asObservable().pipe(tap(() => setTimeout(() => this._changeDetector.detectChanges())));
+  readonly message$ = this._message
+    .asObservable()
+    .pipe(tap(() => setTimeout(() => this._changeDetector.detectChanges())));
 
   constructor(
     @Inject(TAB_ID) private readonly _tabId: number,
@@ -39,6 +47,11 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.currentUrl = tabs[0].url;
       this.loadFilledPageData(this.currentUrl);
     });
+  }
+
+  public switchMode(mode: Modes) {
+    this.currentMode = mode;
+    this._changeDetector.detectChanges();
   }
 
   public ngAfterViewInit() {}
@@ -62,28 +75,28 @@ export class AppComponent implements OnInit, AfterViewInit {
       return false;
     }
 
-    var filterType = "FULL";
+    var filterType = 'FULL';
     var url1 = this.parseUri(targetUrl.toLowerCase());
     var url2 = this.parseUri(storedUrl.toLowerCase());
 
-    if (storedUrl === "*") {
+    if (storedUrl === '*') {
       return true;
-    } else if (filterType === "FILTER_BY_DOMAIN") {
+    } else if (filterType === 'FILTER_BY_DOMAIN') {
       return url1.host === url2.host;
-    } else if (filterType === "FULL") {
+    } else if (filterType === 'FULL') {
       //return (url1.protocol + url1.host + url1.path) == (url2.protocol + url2.host + url2.path);
       return url1.host + url1.path == url2.host + url2.path;
-    } else if (filterType === "FILTER_BY_FULL") {
+    } else if (filterType === 'FILTER_BY_FULL') {
       //return current == storage;
     } else {
-      console.error("Filter has not been set: " + filterType);
+      console.error('Filter has not been set: ' + filterType);
       return false;
     }
   }
 
   private parseUri(url) {
-    var a = document.createElement("a");
-    a.setAttribute("href", url);
+    var a = document.createElement('a');
+    a.setAttribute('href', url);
 
     return {
       host: a.hostname,
@@ -92,18 +105,20 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   public onClick(): void {
-    chrome.tabs.sendMessage(this.tabId, { command: "save_form" }, message => {
-      this._message.next(chrome.runtime.lastError ? `The current page is protected by the browser or try to refresh the current page...` : message);
+    chrome.tabs.sendMessage(this.tabId, { command: 'save_form' }, message => {
+      this._message.next(
+        chrome.runtime.lastError
+          ? `The current page is protected by the browser or try to refresh the current page...`
+          : message
+      );
       this.currentFormSnapshot = JSON.stringify(message);
       //console.log(this.currentFormSnapshot);
     });
   }
 
   public saveFill(): boolean {
-    //TODO: rename
-
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      chrome.tabs.sendMessage(tabs[0].id, { command: "save_form" }, response => {
+      chrome.tabs.sendMessage(tabs[0].id, { command: 'save_form' }, response => {
         if (response.error) console.log(response.message);
         else {
           this.storeInputs(response.content);
@@ -115,10 +130,10 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   public loadFormSnapshot(snap: FormData) {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      chrome.tabs.sendMessage(tabs[0].id, { command: "load", data: snap }, response => {
+      chrome.tabs.sendMessage(tabs[0].id, { command: 'load', data: snap }, response => {
         if (response.error) console.log(response.message);
         else {
-          console.log("Response received: " + JSON.stringify(response));
+          console.log('Response received: ' + JSON.stringify(response));
         }
       });
     });
@@ -148,28 +163,42 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   public editFormSnapshot(snap: FormData) {
-    snap.editMode = true;
+    //this.appService.form = snap;
+    this.currentSnapshot = snap;
+    this.switchMode(Modes.Edit);
+    //console.log(this.currentSnapshot.fill);
+  }
 
-    this.appService.form = snap;
-    this._changeDetector.detectChanges();
+  public updateFormSnapShot() {
+    let snap = this.currentSnapshot;
+    let key = snap.id;
+    chrome.storage.sync.set({ key: snap }, () => {
+      var error = chrome.runtime.lastError;
+      if (error) {
+        console.error(error);
+      } else {
+        console.log('success');
+        this._changeDetector.detectChanges();
+      }
+    });
   }
 
   public storeInputs(inputs: any): void {
-    const id = this.datePipe.transform(new Date(), "yyyy-MM-dd") + "-" + uuid.v4();
-    const entryName = this.newFillName ? this.newFillName.trim() : "Unnamed Form";
+    const id = this.datePipe.transform(new Date(), 'yyyy-MM-dd') + '-' + uuid.v4();
+    const entryName = this.newFillName ? this.newFillName.trim() : 'Unnamed Form';
 
     let storageEntry: FormData = {
       id: id,
       fillName: entryName,
       url: this.currentUrl,
       fill: inputs,
-      preview: JSON.stringify(inputs),
-      comment: "N/A"
+      preview: JSON.stringify(inputs, null, 2),
+      comment: 'N/A'
     };
 
     chrome.storage.sync.set({ [id]: storageEntry }, () => {
       //console.log(inputs);
-      this.newFillName = "";
+      this.newFillName = '';
       this.dataSource.push(storageEntry);
       this._changeDetector.detectChanges();
     });
