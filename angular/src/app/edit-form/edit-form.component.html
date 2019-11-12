@@ -1,0 +1,11 @@
+<div class="c-edit-form__container">
+  <input [value]="snapshot.fillName" />
+  <input class="hotkey-input" maxlength="15" [value]="snapshot.hotkey ? snapshot.hotkey : ''" />
+
+  <input [value]="snapshot.url" />
+
+  <textarea>{{ snapshot.preview }}</textarea>
+
+  <button class="btn">Save</button>
+  <button class="btn">Cancel</button>
+</div>

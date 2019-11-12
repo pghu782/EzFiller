@@ -1,0 +1,145 @@
+$base-font-size: 12px;
+$blue-theme: #dceeff;
+$grey-theme: rgb(221, 218, 218);
+
+.popupContainer {
+  width: 525px;
+}
+
+.c-debug__output-container {
+  width: 700px;
+  height: 50px;
+  padding: 1rem;
+}
+
+table,
+div,
+button,
+a * {
+  font-size: $base-font-size;
+}
+
+.formsTableContainer {
+  margin: 1rem;
+}
+
+.formsTable {
+  border-collapse: collapse;
+  margin: 0 auto;
+
+  td {
+    img {
+      cursor: pointer;
+      height: 20px;
+      margin: 5px;
+    }
+  }
+}
+
+.hotkey-input {
+  width: 4rem;
+}
+
+thead th {
+  min-width: 70px;
+  max-width: 100px;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid $grey-theme;
+}
+
+tbody td {
+  padding: 0.5rem 1rem;
+  text-align: center;
+}
+td.writeable:hover {
+  background-color: rgb(153, 255, 204);
+}
+td.deleteable:hover {
+  background-color: rgb(255, 144, 129);
+}
+td.btnHighlight:hover {
+  background-color: rgb(159, 236, 255);
+}
+.controlButtons {
+  text-align: center;
+}
+.savePageBtn {
+  font-size: 22px;
+  font-weight: bold;
+}
+.exportBtn {
+  display: inline-block;
+  width: 25px;
+  height: 30px;
+  // background: url(../src/assets/export.svg);
+  background-size: 24px 23px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-position-y: center;
+}
+.exportBtn:hover {
+  /*background-color: lightgreen;*/
+}
+.deleteBtn {
+  display: inline-block;
+  width: 25px;
+  height: 30px;
+  // background: url(../src/assets/noun_Garbage_2034049.svg);
+  background-size: 16px 24px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-position-y: bottom;
+}
+.loadBtn {
+  display: inline-block;
+  width: 25px;
+  height: 30px;
+  //background: url(../src/assets/noun_Garbage_2034049.svg);
+  background-size: 16px 24px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-position-y: bottom;
+}
+.deleteBtn:hover {
+  /*background-color: lightcoral;*/
+}
+
+.clearStorageBtn {
+  position: absolute;
+  right: 1rem;
+}
+
+#editFieldForm {
+  position: absolute;
+  border-radius: 2px;
+  top: 10px;
+  left: 10px;
+  visibility: hidden;
+  border-color: black;
+  border-style: solid;
+  border-width: 3px;
+  padding: 10px;
+  background: white;
+  box-sizing: border-box;
+  min-height: 120px;
+  min-width: 100px;
+}
+
+#editFieldInput {
+  margin: 10px;
+  width: 90%;
+  max-height: 80%;
+  box-sizing: border-box;
+}
+
+#editFieldSaveBtn {
+  display: inline-block;
+  text-align: center;
+}
+#textRuler {
+  position: absolute;
+  visibility: hidden;
+  height: auto;
+  width: auto;
+  white-space: nowrap; /* Thanks to Herb Caudill comment */
+}

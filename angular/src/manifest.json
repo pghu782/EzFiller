@@ -1,0 +1,47 @@
+{
+  "manifest_version": 2,
+  "name": "EzFiller",
+  "short_name": "EzFiller",
+  "version": "1.0.0",
+  "description": "EzFiller",
+  "permissions": ["tabs", "activeTab", "declarativeContent", "storage"],
+  "browser_action": {
+    "default_popup": "index.html",
+    "default_title": "EzFiller"
+  },
+  "content_scripts": [
+    {
+      "js": ["contentPage.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "background": {
+    "scripts": ["backgroundPage.js"],
+    "persistent": false
+  },
+  "commands": {
+    "toggle-feature": {
+      "suggested_key": {
+        "default": "Alt+I",
+        "mac": "Alt+I"
+      },
+      "description": "Toggle the EzFiller screen"
+    },
+    "_execute_browser_action": {
+      "suggested_key": {
+        "windows": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y",
+        "chromeos": "Ctrl+Shift+Y",
+        "linux": "Ctrl+Shift+J"
+      }
+    },
+    "_execute_page_action": {
+      "suggested_key": {
+        "default": "Ctrl+E",
+        "windows": "Alt+P",
+        "mac": "Command+Shift+P"
+      }
+    }
+  },
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}

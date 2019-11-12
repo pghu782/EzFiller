@@ -1,0 +1,60 @@
+<div class="popupContainer">
+  <div class="formsTableContainer">
+    <table class="formsTable">
+      <thead>
+        <tr>
+          <th>Load</th>
+          <th>Fill Name</th>
+          <th>Hotkey</th>
+          <th>Export/Remove</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="dataSource && dataSource.length > 0; then formsRows; else emptyRow"></ng-container>
+        <ng-template #formsRows>
+          <ng-container *ngFor="let row of dataSource">
+            <tr *ngIf="!row.editMode; else editForm">
+              <td>
+                <img src="assets/arrow-up-solid.svg" (click)="loadFormSnapshot(row)" />
+              </td>
+              <td>
+                {{ row.fillName }}
+                <input *ngIf="isEditMode" [value]="row.fillName" />
+              </td>
+              <td>{{ row.hotkey }}</td>
+              <td>
+                <img src="assets/file-export-solid.svg" (click)="editFormSnapshot(row)" />
+                <img src="assets/trash-alt-regular.svg" (click)="deleteFormSnapshot(row)" />
+              </td>
+            </tr>
+            <ng-template #editForm>
+              <app-edit-form [snapshot]="row"></app-edit-form>
+            </ng-template>
+          </ng-container>
+        </ng-template>
+        <ng-template #emptyRow>
+          <tr>
+            <td>No results found!</td>
+          </tr>
+        </ng-template>
+      </tbody>
+    </table>
+  </div>
+  <div class="d-flex m-2 justify-content-center ">
+    <input type="text" [(ngModel)]="newFillName" placeholder="Enter name here" />
+    <button id="userTestSaveBtn" (click)="saveFill()" class="btn btn-outline-success" style="margin-left:0.5rem;">
+      Save!
+    </button>
+    <button class="clearStorageBtn btn btn-outline-danger" (click)="clearStorage()">
+      Clear Storage
+    </button>
+  </div>
+</div>
+<!-- <div>
+  The current URL is: <span id="urlSpan">{{ this.currentUrl }}</span>
+</div>
+<button (click)="onClick()">Click me to test</button>
+<div class="c-debug__output-container">
+  <div><strong>Current output:</strong></div>
+  <div *ngIf="currentFormSnapshot">{{ currentFormSnapshot }}</div>
+</div> -->
