@@ -1,13 +1,12 @@
 // prettier-ignore
 import { ChangeDetectorRef,Component,Inject,ChangeDetectionStrategy,
-  OnInit, AfterViewInit, Input } from "@angular/core";
+  OnInit, AfterViewInit, Input, NgZone, OnChanges } from "@angular/core";
 import { DatePipe } from '@angular/common';
 import { Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { TAB_ID } from './tab-id.injector';
 import * as uuid from 'uuid';
 import { Router } from '@angular/router';
-
+import { TAB_ID } from './shared/tab-id.injector';
 import { FormData, FormSnapshot, Modes } from './shared/app.models';
 import { AppService } from './shared/app.service';
 
@@ -16,21 +15,21 @@ import { AppService } from './shared/app.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit, AfterViewInit, OnChanges {
   private readonly _message = new Subject<string>();
   public currentFormSnapshot: string;
-  public dataSource: FormData[] = [];
+  public dataSource: FormData[];
   public currentUrl: string;
   public newFillName: string;
   public Modes = Modes;
-  @Input()
   public currentMode = Modes.List;
 
   public currentSnapshot: FormData;
-  public editError: boolean = false;
 
   readonly tabId = this._tabId;
-  readonly message$ = this._message
+
+  public snapshotSubject = new Subject<FormData>();
+  readonly snapshot$ = this.snapshotSubject
     .asObservable()
     .pipe(tap(() => setTimeout(() => this._changeDetector.detectChanges())));
 
@@ -39,7 +38,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     private readonly _changeDetector: ChangeDetectorRef,
     private datePipe: DatePipe,
     private router: Router,
-    private appService: AppService
+    private appService: AppService,
+    private zone: NgZone
   ) {}
 
   public ngOnInit() {
@@ -56,52 +56,18 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   public ngAfterViewInit() {}
 
+  public ngOnChanges() {
+    //this._changeDetector.detectChanges();
+  }
+
   public loadFilledPageData(url: string) {
-    chrome.storage.sync.get(null, items => {
-      for (var key in items) {
-        //if (key == 'filter') {
-        //   continue;
-        //}
-        if (this.urlMatch(url, items[key].url)) {
-          this.dataSource.push(items[key]);
-        }
-      }
+    this.appService.getFormSnapshots(url).subscribe(x => {
+      this.dataSource = x;
       this._changeDetector.detectChanges();
+      // setTimeout(() => {
+      //   this._changeDetector.detectChanges();
+      // });
     });
-  }
-
-  private urlMatch(targetUrl, storedUrl) {
-    if (!storedUrl) {
-      return false;
-    }
-
-    var filterType = 'FULL';
-    var url1 = this.parseUri(targetUrl.toLowerCase());
-    var url2 = this.parseUri(storedUrl.toLowerCase());
-
-    if (storedUrl === '*') {
-      return true;
-    } else if (filterType === 'FILTER_BY_DOMAIN') {
-      return url1.host === url2.host;
-    } else if (filterType === 'FULL') {
-      //return (url1.protocol + url1.host + url1.path) == (url2.protocol + url2.host + url2.path);
-      return url1.host + url1.path == url2.host + url2.path;
-    } else if (filterType === 'FILTER_BY_FULL') {
-      //return current == storage;
-    } else {
-      console.error('Filter has not been set: ' + filterType);
-      return false;
-    }
-  }
-
-  private parseUri(url) {
-    var a = document.createElement('a');
-    a.setAttribute('href', url);
-
-    return {
-      host: a.hostname,
-      path: a.pathname
-    };
   }
 
   public onClick(): void {
@@ -112,7 +78,6 @@ export class AppComponent implements OnInit, AfterViewInit {
           : message
       );
       this.currentFormSnapshot = JSON.stringify(message);
-      //console.log(this.currentFormSnapshot);
     });
   }
 
@@ -154,7 +119,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       if (error) {
         console.error(error);
       } else {
-        console.log(this.dataSource);
         const deleteIndex = this.dataSource.findIndex(x => x.id == snap.id);
         if (deleteIndex > -1) this.dataSource.splice(deleteIndex, 1);
         this._changeDetector.detectChanges();
@@ -163,22 +127,21 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   public editFormSnapshot(snap: FormData) {
-    //this.appService.form = snap;
-    this.currentSnapshot = snap;
+    this.currentSnapshot = JSON.parse(JSON.stringify(snap));
     this.switchMode(Modes.Edit);
-    //console.log(this.currentSnapshot.fill);
   }
 
   public updateFormSnapShot() {
     let snap = this.currentSnapshot;
-    let key = snap.id;
-    chrome.storage.sync.set({ key: snap }, () => {
+    let updatedSnap = {};
+    updatedSnap[snap.id] = snap;
+    chrome.storage.sync.set(updatedSnap, () => {
       var error = chrome.runtime.lastError;
       if (error) {
         console.error(error);
       } else {
-        console.log('success');
-        this._changeDetector.detectChanges();
+        this.switchMode(Modes.List);
+        this.loadFilledPageData(this.currentUrl);
       }
     });
   }
@@ -197,7 +160,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     };
 
     chrome.storage.sync.set({ [id]: storageEntry }, () => {
-      //console.log(inputs);
       this.newFillName = '';
       this.dataSource.push(storageEntry);
       this._changeDetector.detectChanges();

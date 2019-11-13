@@ -9,9 +9,10 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EditFormComponent } from './edit-form/edit-form.component';
+import { DetectChangesDirective } from './shared/detect-changes-directive';
 
 @NgModule({
-  declarations: [AppComponent, TruncatePipe, EditFormComponent],
+  declarations: [AppComponent, TruncatePipe, EditFormComponent, DetectChangesDirective],
   imports: [CommonModule, NgbModule, BrowserModule, AppRoutingModule, FormsModule, RouterModule],
   providers: [DatePipe],
   bootstrap: [AppComponent]

@@ -16,5 +16,5 @@ export class FormData {
   hotkey?: string;
   comment?: string;
   editMode?: boolean;
-  fill: any;
+  fill: any[];
 }

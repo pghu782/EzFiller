@@ -1,20 +1,32 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { FormData, FormSnapshot, Modes } from '../shared/app.models';
 
 import { AppService } from '../shared/app.service';
+import { NgForm } from '@angular/forms';
+import { Subscription, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-edit-form',
   templateUrl: './edit-form.component.html',
   styleUrls: ['../app.component.scss']
 })
-export class EditFormComponent implements OnInit {
+export class EditFormComponent implements OnInit, OnChanges {
   @Input()
   public snapshot: FormData;
 
-  constructor(private appService: AppService) {}
+  //@ViewChild('f')
+  public form: NgForm;
 
-  ngOnInit() {}
+  constructor(private appService: AppService, private readonly _changeDetector: ChangeDetectorRef) {}
+  ngOnInit() {
+    //this.subscription = this.snapshot$.
+  }
 
-  ngOnChanges(): void {}
+  ngOnChanges() {
+    this._changeDetector.detectChanges();
+  }
+
+  onSubmit(f: NgForm) {
+    console.log(f.value); // { first: '', last: '' }
+  }
 }

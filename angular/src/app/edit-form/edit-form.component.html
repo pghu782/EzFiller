@@ -1,28 +1,54 @@
 <div class="c-edit-form__container">
   <div class="d-flex justify-content-center">
-    <table class="c-edit-form__table">
-      <tr>
-        <td class="table-label">Fill name</td>
-        <td><input type="text" class="form-control" [(ngModel)]="snapshot.fillName" /></td>
-      </tr>
-      <tr>
-        <td class="table-label">Hotkey</td>
-        <td>
-          <input type="text" class="form-control hotkey-input" maxlength="15" [(ngModel)]="snapshot.hotkey" />
-        </td>
-      </tr>
-      <tr>
-        <td class="table-label">URL</td>
-        <td>
-          <input type="text" class="form-control" [(ngModel)]="snapshot.url" />
-        </td>
-      </tr>
-      <tr>
-        <td class="table-label">JSON</td>
-        <td>
-          <textarea class="form-control" name="snapshotJson" [(ngModel)]="snapshot.preview"></textarea>
-        </td>
-      </tr>
-    </table>
+    <form name="mainForm" (ngSubmit)="onSubmit(f)" #f="ngForm">
+      <table class="c-edit-form__table">
+        <tr>
+          <td class="table-label">
+            <div><label for="fillName">Fill name</label></div>
+          </td>
+          <td>
+            <div>
+              <input
+                type="text"
+                name="fillName"
+                class="form-control"
+                [(ngModel)]="snapshot.fillName"
+                required
+                #fillName="ngModel"
+                [detectChanges]
+              />
+              <div style="color:red" *ngIf="fillName.errors">
+                <div *ngIf="fillName.errors.required">Fill Name is required</div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="table-label">Hotkey</td>
+          <td>
+            <input
+              type="text"
+              name="hotkey"
+              id="hotkey"
+              class="form-control hotkey-input"
+              maxlength="15"
+              [(ngModel)]="snapshot.hotkey"
+            />
+          </td>
+        </tr>
+        <tr>
+          <td class="table-label">URL</td>
+          <td>
+            <input type="text" name="url" id="url" class="form-control" [(ngModel)]="snapshot.url" required />
+          </td>
+        </tr>
+        <tr>
+          <td class="table-label">JSON</td>
+          <td>
+            <textarea class="form-control" name="preview" id="preview" [(ngModel)]="snapshot.preview"></textarea>
+          </td>
+        </tr>
+      </table>
+    </form>
   </div>
 </div>
