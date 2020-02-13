@@ -1,6 +1,6 @@
 // prettier-ignore
 import { ChangeDetectorRef,Component,Inject,ChangeDetectionStrategy,
-  OnInit, AfterViewInit, Input, NgZone, OnChanges } from "@angular/core";
+  OnInit, AfterViewInit, Input, NgZone, OnChanges, HostListener, Renderer2 } from "@angular/core";
 import { DatePipe } from '@angular/common';
 import { Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -9,13 +9,14 @@ import { Router } from '@angular/router';
 import { TAB_ID } from './shared/tab-id.injector';
 import { FormData, FormSnapshot, Modes } from './shared/app.models';
 import { AppService } from './shared/app.service';
+import { PageCommands } from './shared/enum.models';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit, AfterViewInit, OnChanges {
+export class AppComponent implements OnInit {
   private readonly _message = new Subject<string>();
   public currentFormSnapshot: string;
   public dataSource: FormData[];
@@ -25,6 +26,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnChanges {
   public currentMode = Modes.List;
 
   public currentSnapshot: FormData;
+  public statusText: string = '';
 
   readonly tabId = this._tabId;
 
@@ -39,14 +41,34 @@ export class AppComponent implements OnInit, AfterViewInit, OnChanges {
     private datePipe: DatePipe,
     private router: Router,
     private appService: AppService,
-    private zone: NgZone
+    private zone: NgZone,
+    private renderer: Renderer2
   ) {}
 
   public ngOnInit() {
+    //TODO: move
+    // this.renderer.listen(document, 'keydown.control.d', event => {
+    //   console.log(event);
+    //   this.loadFormSnapShotFromId('2020-02-12-2db2fb45-ba79-4367-b287-487e1e37586b');
+    // });
+    // this.renderer.listen(document, 'keydown.control.arrowdown', this.listenHotKeys);
+
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       this.currentUrl = tabs[0].url;
       this.loadFilledPageData(this.currentUrl);
     });
+
+    this._message.subscribe(m => {
+      this.updateStatusText('ERROR: ' + m);
+    });
+  }
+
+  private listenHotKeys($event) {
+    console.log('got here with: ' + JSON.stringify($event));
+  }
+
+  public onKeyDown($event) {
+    this.updateStatusText($event);
   }
 
   public switchMode(mode: Modes) {
@@ -54,75 +76,58 @@ export class AppComponent implements OnInit, AfterViewInit, OnChanges {
     this._changeDetector.detectChanges();
   }
 
-  public ngAfterViewInit() {}
-
-  public ngOnChanges() {
-    //this._changeDetector.detectChanges();
-  }
-
   public loadFilledPageData(url: string) {
-    this.appService.getFormSnapshots(url).subscribe(x => {
-      this.dataSource = x;
+    this.appService.getFormSnapshots(url).subscribe(response => {
+      this.dataSource = response;
       this._changeDetector.detectChanges();
-      // setTimeout(() => {
-      //   this._changeDetector.detectChanges();
-      // });
     });
   }
 
-  public onClick(): void {
-    chrome.tabs.sendMessage(this.tabId, { command: 'save_form' }, message => {
-      this._message.next(
-        chrome.runtime.lastError
-          ? `The current page is protected by the browser or try to refresh the current page...`
-          : message
-      );
-      this.currentFormSnapshot = JSON.stringify(message);
-    });
-  }
-
-  public saveFill(): boolean {
+  public saveFill() {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      chrome.tabs.sendMessage(tabs[0].id, { command: 'save_form' }, response => {
-        if (response.error) console.log(response.message);
-        else {
+      chrome.tabs.sendMessage(tabs[0].id, { command: PageCommands.SaveForm }, response => {
+        if (response.error) {
+          this.setErrorText(response.message);
+        } else {
           this.storeInputs(response.content);
+          this.updateStatusText('Saved form!');
         }
       });
     });
-    return true;
   }
 
   public loadFormSnapshot(snap: FormData) {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      chrome.tabs.sendMessage(tabs[0].id, { command: 'load', data: snap }, response => {
-        if (response.error) console.log(response.message);
-        else {
+      chrome.tabs.sendMessage(tabs[0].id, { command: PageCommands.Load, data: snap }, response => {
+        if (response.error) {
+          this.setErrorText(response.message);
+        } else {
           console.log('Response received: ' + JSON.stringify(response));
+          this.updateStatusText("Fields from saved form '" + snap.fillName + "' successfully loaded.");
         }
       });
     });
   }
 
+  public loadFormSnapShotFromId(id: string) {
+    const snap = this.dataSource.find(f => f.id == id);
+    if (snap) {
+      this.loadFormSnapshot(snap);
+    }
+  }
+
   public clearStorage() {
-    chrome.storage.sync.clear(function() {
-      var error = chrome.runtime.lastError;
-      if (error) {
-        console.error(error);
-      }
+    chrome.storage.local.clear(function() {
+      this.checkChromeError();
     });
   }
 
   public deleteFormSnapshot(snap: FormData) {
-    chrome.storage.sync.remove(snap.id, () => {
-      var error = chrome.runtime.lastError;
-      if (error) {
-        console.error(error);
-      } else {
-        const deleteIndex = this.dataSource.findIndex(x => x.id == snap.id);
-        if (deleteIndex > -1) this.dataSource.splice(deleteIndex, 1);
-        this._changeDetector.detectChanges();
-      }
+    chrome.storage.local.remove(snap.id, () => {
+      if (this.checkChromeError()) return;
+      const deleteIndex = this.dataSource.findIndex(x => x.id == snap.id);
+      if (deleteIndex > -1) this.dataSource.splice(deleteIndex, 1);
+      this._changeDetector.detectChanges();
     });
   }
 
@@ -132,26 +137,23 @@ export class AppComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   public updateFormSnapShot() {
-    let snap = this.currentSnapshot;
     let updatedSnap = {};
+    const snap = this.currentSnapshot;
     updatedSnap[snap.id] = snap;
-    chrome.storage.sync.set(updatedSnap, () => {
-      var error = chrome.runtime.lastError;
-      if (error) {
-        console.error(error);
-      } else {
-        this.switchMode(Modes.List);
-        this.loadFilledPageData(this.currentUrl);
-      }
+
+    chrome.storage.local.set(updatedSnap, () => {
+      if (this.checkChromeError()) return;
+      this.switchMode(Modes.List);
+      this.loadFilledPageData(this.currentUrl);
     });
   }
 
   public storeInputs(inputs: any): void {
-    const id = this.datePipe.transform(new Date(), 'yyyy-MM-dd') + '-' + uuid.v4();
+    const entryId = this.datePipe.transform(new Date(), 'yyyy-MM-dd') + '-' + uuid.v4();
     const entryName = this.newFillName ? this.newFillName.trim() : 'Unnamed Form';
 
-    let storageEntry: FormData = {
-      id: id,
+    const storageEntry: FormData = {
+      id: entryId,
       fillName: entryName,
       url: this.currentUrl,
       fill: inputs,
@@ -159,22 +161,30 @@ export class AppComponent implements OnInit, AfterViewInit, OnChanges {
       comment: 'N/A'
     };
 
-    chrome.storage.sync.set({ [id]: storageEntry }, () => {
+    chrome.storage.local.set({ [entryId]: storageEntry }, () => {
+      if (this.checkChromeError()) return;
       this.newFillName = '';
       this.dataSource.push(storageEntry);
       this._changeDetector.detectChanges();
     });
   }
-}
 
-// document.addEventListener(
-//   "DOMContentLoaded",
-//   function() {
-//     document.addEventListener("keypress", event => {
-//       if (event.keyCode == 13) {
-//         alert("hi.");
-//       }
-//     });
-//   },
-//   false
-// );
+  // #region Private Methods
+  private setErrorText(text: string) {
+    this._message.next(text);
+  }
+
+  private checkChromeError(): boolean {
+    const error = chrome.runtime.lastError;
+    if (error) {
+      this._message.next(JSON.stringify(error));
+    }
+    return !!error;
+  }
+
+  private updateStatusText(text: string) {
+    this.statusText = text;
+    this._changeDetector.detectChanges();
+  }
+  // #endregion
+}

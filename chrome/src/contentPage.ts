@@ -1,7 +1,5 @@
-import {
-  FormData,
-  FormSnapshot
-} from "../../angular//src/app/shared/app.models";
+import { FormData, FormSnapshot } from '../../angular/src/app/shared/app.models';
+import { PageCommands } from '../../angular/src/app/shared/enum.models';
 
 // chrome.runtime.onMessage.addListener((request, sender, respond) => {
 //   const handler = new Promise((resolve, reject) => {
@@ -21,7 +19,7 @@ import {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.command) {
-    case "save_form":
+    case PageCommands.SaveForm:
       try {
         var fields = serializeInputs();
         sendResponse({ content: fields, error: false });
@@ -30,10 +28,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
       break;
 
-    case "load":
+    case PageCommands.Load:
       try {
         loadSnapshot(request.data);
-        sendResponse({ error: false, message: "Success!" });
+        sendResponse({ error: false, message: 'Success!' });
       } catch (e) {
         sendResponse({ error: true, message: e.message });
       }
@@ -42,25 +40,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function serializeInputs() {
-  var inputs = document.querySelectorAll("input,select");
-  var list = [];
-  var formObj;
+  const inputs = document.querySelectorAll('input,select');
+  const savedControls = [];
+  let control;
 
   for (var i = 0; i < inputs.length; i++) {
-    formObj = {};
-    let elem = inputs[i] as HTMLInputElement;
-    var value = elem.value;
-    formObj.type = elem.type;
+    const input = inputs[i] as HTMLInputElement;
 
-    formObj.name = elem.name;
-    formObj.id = elem.id;
+    if (input.value.trim() == '') {
+      continue;
+    }
 
-    formObj.tag = elem.tagName.toLowerCase();
-    formObj.value = value;
-    list.push(formObj);
+    control = {};
+    control.type = input.type;
+    control.name = input.name;
+    control.id = input.id;
+    control.tag = input.tagName.toLowerCase();
+    control.value = input.value;
+    savedControls.push(control);
   }
 
-  return list;
+  return savedControls;
 }
 
 var port = chrome.runtime.connect();
@@ -74,17 +74,13 @@ var port = chrome.runtime.connect();
 
 function loadSnapshot(snapshotData: FormData) {
   if (!snapshotData.fill) return;
-  let inputs = Array.prototype.slice.call(
-    document.querySelectorAll("input,select")
-  );
+  let inputs = Array.prototype.slice.call(document.querySelectorAll('input,select'));
 
   for (let index = 0; index < snapshotData.fill.length; index++) {
     let savedField = snapshotData.fill[index];
 
     inputs.map(field => {
-      return field.name === savedField.name
-        ? (field.value = savedField.value)
-        : false;
+      return field.name === savedField.name ? (field.value = savedField.value) : false;
     });
   }
 }

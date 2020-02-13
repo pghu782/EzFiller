@@ -19,11 +19,10 @@ export class AppService {
     //this.currentMode = mode;
   }
 
-  public getFormSnapshots(url: string): Observable<FormData[]> {
+  public getFormSnapshots(url: string) {
     return new Observable<FormData[]>(subscriber => {
-      let dataArr: FormData[] = [];
-
-      chrome.storage.sync.get(null, (items: FormData[]) => {
+      chrome.storage.local.get(null, (items: FormData[]) => {
+        let dataArr: FormData[] = [];
         for (var key in items) {
           if (this.urlMatch(url, items[key].url)) {
             dataArr.push(items[key]);
@@ -60,6 +59,22 @@ export class AppService {
       console.error('Filter has not been set: ' + filterType);
       return false;
     }
+  }
+
+  public checkHotKeyDuplicates(hotkey: string) {
+    return new Observable<boolean>(subscriber => {
+      chrome.storage.local.get(null, (items: FormData[]) => {
+        let isDuplicate = false;
+        for (var key in items) {
+          if (items[key].hotkey == hotkey) {
+            isDuplicate = true;
+            break;
+          }
+        }
+        // let matches = items.some(x => x.hotkey == hotkey);
+        subscriber.next(isDuplicate);
+      });
+    });
   }
 
   public parseUri(url) {

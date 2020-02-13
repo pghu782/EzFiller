@@ -31,9 +31,16 @@
               name="hotkey"
               id="hotkey"
               class="form-control hotkey-input"
-              maxlength="15"
+              maxlength="20"
+              (keyup)="inputHotkey($event)"
               [(ngModel)]="snapshot.hotkey"
+              #hotkey="ngModel"
             />
+            <div>{{ testCtrl }}</div>
+
+            <div style="color:red" *ngIf="hotkey.errors">
+              <div *ngIf="hotkey.errors.appValidateHotkey">Invalid format</div>
+            </div>
           </td>
         </tr>
         <tr>

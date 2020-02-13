@@ -1,10 +1,22 @@
+/* Variables */
 $base-font-size: 12px;
+$popup-width: 525px;
 $blue-theme: #dceeff;
 $grey-theme: rgb(221, 218, 218);
 
-.popupContainer {
-  width: 525px;
-  padding: 1rem;
+/* HTML Tag styles */
+table,
+div,
+button,
+a * {
+  font-size: $base-font-size;
+}
+
+/* Styles */
+.main-popup__container {
+  width: $popup-width;
+  padding: 1rem 1rem 2rem 1rem;
+  position: relative;
 }
 
 .c-debug__output-container {
@@ -13,19 +25,24 @@ $grey-theme: rgb(221, 218, 218);
   padding: 1rem;
 }
 
-table,
-div,
-button,
-a * {
-  font-size: $base-font-size;
+.forms-table__container {
 }
 
-.formsTableContainer {
-}
-
-.formsTable {
+.forms-table {
   border-collapse: collapse;
   margin: 0 auto;
+
+  th,
+  td {
+    padding: 0.5rem 1rem;
+    text-align: center;
+  }
+
+  thead th {
+    min-width: 70px;
+    max-width: 100px;
+    border-bottom: 1px solid $grey-theme;
+  }
 
   td {
     img {
@@ -33,37 +50,26 @@ a * {
       height: 20px;
       margin: 5px;
     }
+    .writeable:hover {
+      background-color: rgb(153, 255, 204);
+    }
+    .deleteable:hover {
+      background-color: rgb(255, 144, 129);
+    }
+    .btnHighlight:hover {
+      background-color: rgb(159, 236, 255);
+    }
   }
 }
 
+.control-panel__container {
+  margin: 2rem 1rem 1rem 1rem;
+}
+
 .hotkey-input {
-  width: 4rem;
+  width: 5rem;
 }
 
-.table-label {
-  font-weight: bold;
-}
-
-thead th {
-  min-width: 70px;
-  max-width: 100px;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid $grey-theme;
-}
-
-tbody td {
-  padding: 0.5rem 1rem;
-  text-align: center;
-}
-td.writeable:hover {
-  background-color: rgb(153, 255, 204);
-}
-td.deleteable:hover {
-  background-color: rgb(255, 144, 129);
-}
-td.btnHighlight:hover {
-  background-color: rgb(159, 236, 255);
-}
 .controlButtons {
   text-align: center;
 }
@@ -81,31 +87,28 @@ td.btnHighlight:hover {
   background-position: center;
   background-position-y: center;
 }
-.exportBtn:hover {
-  /*background-color: lightgreen;*/
-}
+
 .deleteBtn {
   display: inline-block;
   width: 25px;
   height: 30px;
-  // background: url(../src/assets/noun_Garbage_2034049.svg);
   background-size: 16px 24px;
   background-repeat: no-repeat;
   background-position: center;
   background-position-y: bottom;
+
+  //&:hover {
+  /*background-color: lightcoral;*/
+  //}
 }
 .loadBtn {
   display: inline-block;
   width: 25px;
   height: 30px;
-  //background: url(../src/assets/noun_Garbage_2034049.svg);
   background-size: 16px 24px;
   background-repeat: no-repeat;
   background-position: center;
   background-position-y: bottom;
-}
-.deleteBtn:hover {
-  /*background-color: lightcoral;*/
 }
 
 .clearStorageBtn {
@@ -155,6 +158,10 @@ td.btnHighlight:hover {
     width: 300px;
     height: 150px;
   }
+
+  .table-label {
+    font-weight: bold;
+  }
 }
 #textRuler {
   position: absolute;
@@ -162,4 +169,12 @@ td.btnHighlight:hover {
   height: auto;
   width: auto;
   white-space: nowrap;
+}
+
+.status-text {
+  position: absolute;
+  max-width: $popup-width;
+  bottom: 1rem;
+  left: 1rem;
+  color: red;
 }
