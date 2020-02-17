@@ -24,12 +24,11 @@ export class AppComponent implements OnInit {
   public currentUrl: string;
   public newFillName: string;
   public Modes = Modes;
-  public currentMode = Modes.List;
+  public currentMode: Modes;
 
   public currentSnapshot: FormData;
-  public statusText: string = '';
 
-  readonly tabId = this._tabId;
+  // readonly tabId = this._tabId;
 
   public snapshotSubject = new Subject<FormData>();
   readonly snapshot$ = this.snapshotSubject
@@ -37,14 +36,14 @@ export class AppComponent implements OnInit {
     .pipe(tap(() => setTimeout(() => this._changeDetector.detectChanges())));
 
   constructor(
-    @Inject(TAB_ID) private readonly _tabId: number,
-    private readonly _changeDetector: ChangeDetectorRef,
-    private datePipe: DatePipe,
-    private router: Router,
-    private appService: AppService,
-    private zone: NgZone,
-    private renderer: Renderer2
-  ) {}
+    //@Inject(TAB_ID) private readonly _tabId: number,
+    public readonly _changeDetector: ChangeDetectorRef,
+    public datePipe: DatePipe,
+    public appService: AppService,
+    public renderer: Renderer2
+  ) {
+    this.currentMode = Modes.List;
+  }
 
   public ngOnInit() {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
@@ -55,10 +54,11 @@ export class AppComponent implements OnInit {
     this._message.subscribe(m => {
       this.updateStatusText('ERROR: ' + m);
     });
-  }
 
-  private listenHotKeys($event) {
-    console.log('got here with: ' + JSON.stringify($event));
+    this.appService.currentMode.subscribe(mode => {
+      this.currentMode = mode;
+      this._changeDetector.detectChanges();
+    });
   }
 
   public onKeyDown($event) {
@@ -66,7 +66,7 @@ export class AppComponent implements OnInit {
   }
 
   public switchMode(mode: Modes) {
-    this.currentMode = mode;
+    this.appService.switchMode(mode);
     this._changeDetector.detectChanges();
   }
 
@@ -140,35 +140,9 @@ export class AppComponent implements OnInit {
 
   public editFormSnapshot(snap: FormData) {
     this.currentSnapshot = snap;
-    this.switchMode(Modes.Edit);
-  }
-
-  public editFormSnapShot() {
-    let updatedSnap = {};
-    const snap = this.currentSnapshot;
-    console.log(snap);
-
-    //Process inputs
-    const newFields = tryParseJSON(snap.preview);
-    if (!newFields) {
-      this.updateStatusText('Invalid JSON entered! Please revise');
-      return;
-    } else {
-      snap.fill = newFields;
-    }
-
-    updatedSnap[snap.id] = snap;
-
-    chrome.storage.local.set(updatedSnap, () => {
-      if (this.checkChromeError()) return;
-      this.switchMode(Modes.List);
-      this.loadFilledPageData(this.currentUrl);
-    });
-  }
-
-  public cancelEditFormSnapShot() {
-    //TODO: revert values
-    this.switchMode(Modes.List);
+    //this.switchMode(Modes.Edit);
+    this.appService.switchMode(Modes.Edit);
+    this._changeDetector.detectChanges();
   }
 
   public storeInputs(inputs: any): void {
@@ -205,7 +179,7 @@ export class AppComponent implements OnInit {
   }
 
   private updateStatusText(text: string) {
-    this.statusText = text;
+    this.appService.setStatus(text);
     this._changeDetector.detectChanges();
   }
 }

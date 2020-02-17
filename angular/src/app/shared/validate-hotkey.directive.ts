@@ -37,16 +37,17 @@ export class ValidateHotkeyDirective implements Validator {
   public validate(c: FormControl) {
     return this.validator(c);
   }
+
   public hotkeyValidator(): ValidatorFn {
     return (c: FormControl) => {
-      let isValid = /^[_a-z0-9]+(\.[_a-z0-9]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/.test(c.value);
+      console.log(c.value);
+      //let isValid = /^[_a-z0-9]+(\.[_a-z0-9]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/.test(c.value);
+      let isValid = /^Ctrl\s\+\s[a-z]$/.test(c.value);
       if (isValid) {
         return null;
       } else {
         return {
-          appValidateHotkey: {
-            valid: false
-          }
+          appValidateHotkey: true
         };
       }
     };
@@ -64,21 +65,5 @@ export class ValidateHotkeyDirective implements Validator {
         return null;
       }
     };
-
-    // this.appService.checkHotKeyDuplicates(c.value).subscribe(response =>
-    //   {
-    //     console.log(response);
-
-    //     if (response){
-    //     return {
-    //       appValidateHotkey: {
-    //         valid: false
-    //       }
-    //     };
-    //   }
-    //   else {
-    //     return null;
-    //   }
-    //   });
   }
 }

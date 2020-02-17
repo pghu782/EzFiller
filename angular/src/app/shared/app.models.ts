@@ -14,6 +14,7 @@ export class FormData {
   fillName: string;
   preview: string;
   hotkey?: string;
+  hotkeyText?: string;
   comment?: string;
   editMode?: boolean;
   fill: any[];

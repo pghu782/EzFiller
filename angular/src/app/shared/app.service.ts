@@ -1,6 +1,6 @@
 import { FormData, Modes } from './app.models';
-import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject, of } from 'rxjs';
+import { Injectable, ChangeDetectorRef } from '@angular/core';
+import { Observable, BehaviorSubject, of, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -9,14 +9,17 @@ export class AppService {
   public form: FormData;
   private readonly dataSubject: BehaviorSubject<Array<FormData>>;
   private readonly _data$: Observable<Array<FormData>>;
+  public currentMode = new Subject<Modes>();
+  private statusText: string = '';
 
   constructor() {
     this.dataSubject = new BehaviorSubject([]);
     this._data$ = this.dataSubject.asObservable();
+    // this.currentMode = Modes.List;
   }
 
   public switchMode(mode: Modes) {
-    //this.currentMode = mode;
+    this.currentMode.next(mode);
   }
 
   public getFormSnapshots(url: string) {
@@ -85,5 +88,13 @@ export class AppService {
       host: a.hostname,
       path: a.pathname
     };
+  }
+
+  public setStatus(text: string) {
+    this.statusText = text;
+  }
+
+  public getStatus(): string {
+    return this.statusText;
   }
 }

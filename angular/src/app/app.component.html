@@ -1,11 +1,11 @@
 <!-- Popup container-->
 <div class="main-popup__container" (keydown)="onKeyDown($event)">
-  <ng-container *ngIf="currentMode == Modes.Edit; then editForm; else formsTable"></ng-container>
-  <div class="status-text">{{ statusText }}</div>
+  <ng-container *ngIf="currentMode == Modes.Edit; then editView; else listView"></ng-container>
+  <div class="status-text">{{ appService.getStatus() }}</div>
 </div>
 
 <!--Main form snapshots table-->
-<ng-template #formsTable>
+<ng-template #listView>
   <div class="forms-table__container">
     <table class="forms-table">
       <thead>
@@ -54,19 +54,6 @@
 </ng-template>
 
 <!--Form snapshot edit-->
-<ng-template #editForm>
+<ng-template #editView>
   <app-edit-form [snapshot]="this.currentSnapshot"></app-edit-form>
-  <div class="d-flex m-2 justify-content-center ">
-    <button class="btn btn-outline-primary m-2" (click)="editFormSnapShot()">Save</button>
-    <button class="btn btn-outline-danger m-2" (click)="cancelEditFormSnapShot()">Cancel</button>
-  </div>
 </ng-template>
-
-<!-- <div>
-  The current URL is: <span id="urlSpan">{{ this.currentUrl }}</span>
-</div>
-<button (click)="onClick()">Click me to test</button>
-<div class="c-debug__output-container">
-  <div><strong>Current output:</strong></div>
-  <div *ngIf="currentFormSnapshot">{{ currentFormSnapshot }}</div>
-</div> -->
