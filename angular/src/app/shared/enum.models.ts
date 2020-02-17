@@ -1,4 +1,4 @@
-export enum PageCommands {
+export enum PageCommand {
   SaveForm = 1,
   Load = 2
 }
@@ -8,4 +8,9 @@ export enum StatusType {
   Success = 2,
   Warning = 3,
   Error = 4
+}
+
+export enum Mode {
+  List = 1,
+  Edit = 2
 }

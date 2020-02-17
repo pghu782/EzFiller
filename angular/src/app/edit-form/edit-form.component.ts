@@ -1,22 +1,10 @@
-import {
-  Component,
-  OnInit,
-  Input,
-  OnChanges,
-  ChangeDetectorRef,
-  ViewChild,
-  ElementRef,
-  Renderer2
-} from '@angular/core';
-import { FormData, FormSnapshot, Modes } from '../shared/app.models';
-
+import { Component, OnInit, Input, OnChanges, ChangeDetectorRef, Renderer2 } from '@angular/core';
+import { FormData } from '../shared/app.models';
 import { AppService } from '../shared/app.service';
-import { NgForm, NgModel } from '@angular/forms';
+import { NgForm } from '@angular/forms';
 import { Subscription, Observable, Subject, Subscriber } from 'rxjs';
-import { debounceTime, distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { tryParseJSON } from '../shared/helpers';
-import { AppComponent } from '../app.component';
-import { DatePipe } from '@angular/common';
+import { Mode, StatusType } from '../shared/enum.models';
 
 @Component({
   selector: 'app-edit-form',
@@ -70,31 +58,30 @@ export class EditFormComponent implements OnInit, OnChanges {
     this._changeDetector.detectChanges();
   }
 
-  // public editFormSnapShot() {
-  //   let updatedSnap = {};
-  //   const snap = this.currentSnapshot;
-  //   console.log(snap);
+  public editFormSnapShot() {
+    let updatedSnap = {};
+    console.log(this.snapshot);
 
-  //   //Process inputs
-  //   const newFields = tryParseJSON(snap.preview);
-  //   if (!newFields) {
-  //     this.updateStatusText('Invalid JSON entered! Please revise');
-  //     return;
-  //   } else {
-  //     snap.fill = newFields;
-  //   }
+    //Process inputs
+    const newFields = tryParseJSON(this.snapshot.preview);
+    if (!newFields) {
+      this.appService.setStatus('Invalid JSON entered! Please revise', StatusType.Error);
+      return;
+    } else {
+      this.snapshot.fill = newFields;
+    }
 
-  //   updatedSnap[snap.id] = snap;
+    updatedSnap[this.snapshot.id] = this.snapshot;
 
-  //   chrome.storage.local.set(updatedSnap, () => {
-  //     if (this.checkChromeError()) return;
-  //     this.appService.switchMode(Modes.List);
-  //     this.loadFilledPageData(this.currentUrl);
-  //   });
-  // }
+    chrome.storage.local.set(updatedSnap, () => {
+      if (this.appService.checkChromeError()) return;
+      this.appService.setStatus("Successfully updated form: '" + this.snapshot.fillName + "'", StatusType.Success);
+      this.appService.switchMode(Mode.List);
+    });
+  }
 
   public cancelEditFormSnapShot() {
-    this.appService.switchMode(Modes.List);
+    this.appService.switchMode(Mode.List);
     this.appService.setStatus('');
   }
 }

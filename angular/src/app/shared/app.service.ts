@@ -1,6 +1,7 @@
-import { FormData, Modes } from './app.models';
+import { FormData, AppState } from './app.models';
 import { Injectable, ChangeDetectorRef } from '@angular/core';
 import { Observable, BehaviorSubject, of, Subject } from 'rxjs';
+import { StatusType, Mode } from './enum.models';
 
 @Injectable({
   providedIn: 'root'
@@ -9,17 +10,20 @@ export class AppService {
   public form: FormData;
   private readonly dataSubject: BehaviorSubject<Array<FormData>>;
   private readonly _data$: Observable<Array<FormData>>;
-  public currentMode = new Subject<Modes>();
-  private statusText: string = '';
+
+  public readonly currentMode$ = new Subject<Mode>();
+  public readonly statusText$ = new Subject<string>();
+  public readonly statusType$ = new Subject<StatusType>();
+  public statusType: StatusType;
+  public readonly appState$ = new Subject<AppState>();
+
+  private fullState: AppState;
 
   constructor() {
     this.dataSubject = new BehaviorSubject([]);
     this._data$ = this.dataSubject.asObservable();
+    this.fullState = new AppState();
     // this.currentMode = Modes.List;
-  }
-
-  public switchMode(mode: Modes) {
-    this.currentMode.next(mode);
   }
 
   public getFormSnapshots(url: string) {
@@ -90,11 +94,22 @@ export class AppService {
     };
   }
 
-  public setStatus(text: string) {
-    this.statusText = text;
+  public setStatus(text: string, type?: StatusType) {
+    this.fullState.statusText = text;
+    this.fullState.statusType = type ? type : StatusType.Info;
+    this.appState$.next(this.fullState);
   }
 
-  public getStatus(): string {
-    return this.statusText;
+  public switchMode(mode: Mode) {
+    this.fullState.mode = mode;
+    this.appState$.next(this.fullState);
+  }
+
+  public checkChromeError(): boolean {
+    const error = chrome.runtime.lastError;
+    if (error) {
+      this.setStatus(JSON.stringify(error), StatusType.Error);
+    }
+    return !!error;
   }
 }

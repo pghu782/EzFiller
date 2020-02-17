@@ -1,16 +1,13 @@
 // prettier-ignore
-import { ChangeDetectorRef,Component,Inject,ChangeDetectionStrategy,
-  OnInit, AfterViewInit, Input, NgZone, OnChanges, HostListener, Renderer2 } from "@angular/core";
+import { ChangeDetectorRef,Component,Inject,
+  OnInit, Renderer2 } from "@angular/core";
 import { DatePipe } from '@angular/common';
-import { Subject } from 'rxjs';
-import { tap } from 'rxjs/operators';
 import * as uuid from 'uuid';
 import { Router } from '@angular/router';
 import { TAB_ID } from './shared/tab-id.injector';
-import { FormData, FormSnapshot, Modes } from './shared/app.models';
+import { FormData, FormSnapshot, AppState } from './shared/app.models';
 import { AppService } from './shared/app.service';
-import { PageCommands } from './shared/enum.models';
-import { tryParseJSON } from './shared/helpers';
+import { PageCommand, Mode, StatusType } from './shared/enum.models';
 
 @Component({
   selector: 'app-root',
@@ -18,56 +15,51 @@ import { tryParseJSON } from './shared/helpers';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  private readonly _message = new Subject<string>();
+  public Mode = Mode;
+  public StatusType = StatusType;
+
+  public appState: AppState;
   public currentFormSnapshot: string;
   public dataSource: FormData[];
   public currentUrl: string;
   public newFillName: string;
-  public Modes = Modes;
-  public currentMode: Modes;
-
   public currentSnapshot: FormData;
 
-  // readonly tabId = this._tabId;
+  readonly tabId = this._tabId;
 
-  public snapshotSubject = new Subject<FormData>();
-  readonly snapshot$ = this.snapshotSubject
-    .asObservable()
-    .pipe(tap(() => setTimeout(() => this._changeDetector.detectChanges())));
+  // public snapshotSubject = new Subject<FormData>();
+  // readonly snapshot$ = this.snapshotSubject
+  //   .asObservable()
+  //   .pipe(tap(() => setTimeout(() => this._changeDetector.detectChanges())));
 
   constructor(
-    //@Inject(TAB_ID) private readonly _tabId: number,
+    @Inject(TAB_ID) private readonly _tabId: number,
     public readonly _changeDetector: ChangeDetectorRef,
     public datePipe: DatePipe,
     public appService: AppService,
     public renderer: Renderer2
   ) {
-    this.currentMode = Modes.List;
+    this.appState = new AppState();
   }
 
-  public ngOnInit() {
+  ngOnInit() {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       this.currentUrl = tabs[0].url;
       this.loadFilledPageData(this.currentUrl);
     });
 
-    this._message.subscribe(m => {
-      this.updateStatusText('ERROR: ' + m);
-    });
-
-    this.appService.currentMode.subscribe(mode => {
-      this.currentMode = mode;
+    this.appService.appState$.subscribe(response => {
+      this.appState = response;
       this._changeDetector.detectChanges();
     });
   }
 
   public onKeyDown($event) {
-    this.updateStatusText($event);
+    // this.updateStatusText($event);
   }
 
-  public switchMode(mode: Modes) {
+  public switchMode(mode: Mode) {
     this.appService.switchMode(mode);
-    this._changeDetector.detectChanges();
   }
 
   public loadFilledPageData(url: string) {
@@ -92,12 +84,12 @@ export class AppComponent implements OnInit {
 
   public saveFill() {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      chrome.tabs.sendMessage(tabs[0].id, { command: PageCommands.SaveForm }, response => {
+      chrome.tabs.sendMessage(tabs[0].id, { command: PageCommand.SaveForm }, response => {
         if (response.error) {
-          this.setErrorText(response.message);
+          this.appService.setStatus(response.message, StatusType.Error);
         } else {
           this.storeInputs(response.content);
-          this.updateStatusText('Saved form!');
+          this.appService.setStatus('Saved form!', StatusType.Info);
         }
       });
     });
@@ -105,12 +97,16 @@ export class AppComponent implements OnInit {
 
   public loadFormSnapshot(snap: FormData) {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      chrome.tabs.sendMessage(tabs[0].id, { command: PageCommands.Load, data: snap }, response => {
+      chrome.tabs.sendMessage(tabs[0].id, { command: PageCommand.Load, data: snap }, response => {
         if (response.error) {
-          this.setErrorText(response.message);
+          this.appService.setStatus(response.message, StatusType.Error);
         } else {
           console.log('Response received: ' + JSON.stringify(response));
-          this.updateStatusText("Fields from saved form '" + snap.fillName + "' successfully loaded.");
+          // this.updateStatusText("Fields from saved form '" + snap.fillName + "' successfully loaded.");
+          this.appService.setStatus(
+            "Fields from saved form '" + snap.fillName + "' successfully loaded.",
+            StatusType.Info
+          );
         }
       });
     });
@@ -131,7 +127,7 @@ export class AppComponent implements OnInit {
 
   public deleteFormSnapshot(snap: FormData) {
     chrome.storage.local.remove(snap.id, () => {
-      if (this.checkChromeError()) return;
+      if (this.appService.checkChromeError()) return;
       const deleteIndex = this.dataSource.findIndex(x => x.id == snap.id);
       if (deleteIndex > -1) this.dataSource.splice(deleteIndex, 1);
       this._changeDetector.detectChanges();
@@ -141,7 +137,7 @@ export class AppComponent implements OnInit {
   public editFormSnapshot(snap: FormData) {
     this.currentSnapshot = snap;
     //this.switchMode(Modes.Edit);
-    this.appService.switchMode(Modes.Edit);
+    this.appService.switchMode(Mode.Edit);
     this._changeDetector.detectChanges();
   }
 
@@ -159,27 +155,10 @@ export class AppComponent implements OnInit {
     };
 
     chrome.storage.local.set({ [entryId]: storageEntry }, () => {
-      if (this.checkChromeError()) return;
+      if (this.appService.checkChromeError()) return;
       this.newFillName = '';
       this.dataSource.push(storageEntry);
       this._changeDetector.detectChanges();
     });
-  }
-
-  private setErrorText(text: string) {
-    this._message.next(text);
-  }
-
-  private checkChromeError(): boolean {
-    const error = chrome.runtime.lastError;
-    if (error) {
-      this._message.next(JSON.stringify(error));
-    }
-    return !!error;
-  }
-
-  private updateStatusText(text: string) {
-    this.appService.setStatus(text);
-    this._changeDetector.detectChanges();
   }
 }

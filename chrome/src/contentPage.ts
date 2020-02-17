@@ -1,5 +1,5 @@
 import { FormData, FormSnapshot } from '../../angular/src/app/shared/app.models';
-import { PageCommands } from '../../angular/src/app/shared/enum.models';
+import { PageCommand } from '../../angular/src/app/shared/enum.models';
 
 // chrome.runtime.onMessage.addListener((request, sender, respond) => {
 //   const handler = new Promise((resolve, reject) => {
@@ -19,7 +19,7 @@ import { PageCommands } from '../../angular/src/app/shared/enum.models';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.command) {
-    case PageCommands.SaveForm:
+    case PageCommand.SaveForm:
       try {
         var fields = serializeInputs();
         sendResponse({ content: fields, error: false });
@@ -28,7 +28,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
       break;
 
-    case PageCommands.Load:
+    case PageCommand.Load:
       try {
         loadSnapshot(request.data);
         sendResponse({ error: false, message: 'Success!' });

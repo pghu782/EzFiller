@@ -1,7 +1,4 @@
-export enum Modes {
-  List = 1,
-  Edit
-}
+import { StatusType, Mode } from './enum.models';
 
 export interface FormSnapshot {
   content: any[];
@@ -18,4 +15,16 @@ export class FormData {
   comment?: string;
   editMode?: boolean;
   fill: any[];
+}
+
+export class AppState {
+  statusText: string;
+  statusType: StatusType;
+  mode: Mode;
+
+  constructor() {
+    this.statusText = '';
+    this.statusType = StatusType.Info;
+    this.mode = Mode.List;
+  }
 }

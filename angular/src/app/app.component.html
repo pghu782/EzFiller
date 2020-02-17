@@ -1,7 +1,16 @@
 <!-- Popup container-->
 <div class="main-popup__container" (keydown)="onKeyDown($event)">
-  <ng-container *ngIf="currentMode == Modes.Edit; then editView; else listView"></ng-container>
-  <div class="status-text">{{ appService.getStatus() }}</div>
+  <ng-container *ngIf="appState.mode == Mode.Edit; then editView; else listView"></ng-container>
+  <div
+    class="status-text"
+    [ngClass]="{
+      'text-info': appState.statusType == StatusType.Info,
+      'text-success': appState.statusType == StatusType.Success,
+      'text-danger': appState.statusType == StatusType.Error
+    }"
+  >
+    {{ appState.statusText }}
+  </div>
 </div>
 
 <!--Main form snapshots table-->
@@ -26,7 +35,7 @@
               </td>
               <td>
                 {{ row.fillName }}
-                <input *ngIf="isEditMode" [value]="row.fillName" />
+                <input *ngIf="appState.Mode == Mode.Edit" [value]="row.fillName" />
               </td>
               <td>{{ row.hotkey }}</td>
               <td>
