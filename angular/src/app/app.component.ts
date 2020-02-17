@@ -10,6 +10,7 @@ import { TAB_ID } from './shared/tab-id.injector';
 import { FormData, FormSnapshot, Modes } from './shared/app.models';
 import { AppService } from './shared/app.service';
 import { PageCommands } from './shared/enum.models';
+import { tryParseJSON } from './shared/helpers';
 
 @Component({
   selector: 'app-root',
@@ -46,13 +47,6 @@ export class AppComponent implements OnInit {
   ) {}
 
   public ngOnInit() {
-    //TODO: move
-    // this.renderer.listen(document, 'keydown.control.d', event => {
-    //   console.log(event);
-    //   this.loadFormSnapShotFromId('2020-02-12-2db2fb45-ba79-4367-b287-487e1e37586b');
-    // });
-    // this.renderer.listen(document, 'keydown.control.arrowdown', this.listenHotKeys);
-
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       this.currentUrl = tabs[0].url;
       this.loadFilledPageData(this.currentUrl);
@@ -80,6 +74,19 @@ export class AppComponent implements OnInit {
     this.appService.getFormSnapshots(url).subscribe(response => {
       this.dataSource = response;
       this._changeDetector.detectChanges();
+
+      this.dataSource.forEach(element => {
+        if (element.hotkey) {
+          this.bindHotKeys(element.hotkey, element.id);
+        }
+      });
+    });
+  }
+
+  private bindHotKeys(hotkey: string, snapshotId: string) {
+    this.renderer.listen(document, 'keydown.' + hotkey, event => {
+      // console.log(event);
+      this.loadFormSnapShotFromId(snapshotId);
     });
   }
 
@@ -132,13 +139,24 @@ export class AppComponent implements OnInit {
   }
 
   public editFormSnapshot(snap: FormData) {
-    this.currentSnapshot = JSON.parse(JSON.stringify(snap));
+    this.currentSnapshot = snap;
     this.switchMode(Modes.Edit);
   }
 
-  public updateFormSnapShot() {
+  public editFormSnapShot() {
     let updatedSnap = {};
     const snap = this.currentSnapshot;
+    console.log(snap);
+
+    //Process inputs
+    const newFields = tryParseJSON(snap.preview);
+    if (!newFields) {
+      this.updateStatusText('Invalid JSON entered! Please revise');
+      return;
+    } else {
+      snap.fill = newFields;
+    }
+
     updatedSnap[snap.id] = snap;
 
     chrome.storage.local.set(updatedSnap, () => {
@@ -146,6 +164,11 @@ export class AppComponent implements OnInit {
       this.switchMode(Modes.List);
       this.loadFilledPageData(this.currentUrl);
     });
+  }
+
+  public cancelEditFormSnapShot() {
+    //TODO: revert values
+    this.switchMode(Modes.List);
   }
 
   public storeInputs(inputs: any): void {
@@ -169,7 +192,6 @@ export class AppComponent implements OnInit {
     });
   }
 
-  // #region Private Methods
   private setErrorText(text: string) {
     this._message.next(text);
   }
@@ -186,5 +208,4 @@ export class AppComponent implements OnInit {
     this.statusText = text;
     this._changeDetector.detectChanges();
   }
-  // #endregion
 }

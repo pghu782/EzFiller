@@ -23,6 +23,7 @@ export class EditFormComponent implements OnInit, OnChanges {
   public subscription = new Subscription();
 
   constructor(private appService: AppService, private readonly _changeDetector: ChangeDetectorRef) {}
+
   ngOnInit() {
     this.hotkeyChanged.subscribe(res => {
       this.snapshot.hotkey = res;
@@ -33,14 +34,10 @@ export class EditFormComponent implements OnInit, OnChanges {
     this._changeDetector.detectChanges();
   }
 
-  public onSubmit(f: NgForm) {
-    console.log(f.value); // { first: '', last: '' }
-  }
-
   public inputHotkey($event: KeyboardEvent) {
-    if (($event.ctrlKey || $event.altKey) && $event.key) {
-      this.hotkeyChanged.next('CTRL + ' + $event.key);
-      ($event.target as HTMLInputElement).value = 'CTRL + ' + $event.key;
+    if ($event.ctrlKey && $event.key) {
+      this.hotkeyChanged.next('control.' + $event.key);
+      ($event.target as HTMLInputElement).value = 'control.' + $event.key;
 
       $event.stopPropagation();
     } else if ($event.key !== 'Control') {
