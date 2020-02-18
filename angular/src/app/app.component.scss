@@ -1,8 +1,11 @@
 /* Variables */
 $base-font-size: 12px;
 $popup-width: 525px;
-$blue-theme: #dceeff;
+$blue-theme: rgb(65, 97, 240);
+$light-blue-theme: #dceeff;
+$dark-grey-theme: #dcdcdc;
 $grey-theme: rgb(221, 218, 218);
+$smoke-theme: rgba(0, 0, 0, 0.75);
 
 /* HTML Tag styles */
 table,
@@ -15,14 +18,45 @@ a * {
 /* Styles */
 .main-popup__container {
   width: $popup-width;
-  padding: 1rem 1rem 2rem 1rem;
+  padding-top: 0.5rem;
   position: relative;
 }
 
-.c-debug__output-container {
-  width: 700px;
-  height: 50px;
-  padding: 1rem;
+.menu-bar__container {
+  display: flex;
+  justify-content: space-between;
+  background-color: $dark-grey-theme;
+  padding: 0.5rem 0;
+}
+
+.menu-bar__left-side {
+  display: flex;
+  padding-left: 0.5rem;
+}
+
+.menu-bar__right-side {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.menu-bar__item {
+  cursor: pointer;
+  color: $smoke-theme;
+  margin-right: 0.85rem;
+
+  &:hover {
+    color: white;
+  }
+}
+
+.menu-bar__url-match-toggle {
+  &.dropdown-toggle::after {
+    display: none !important;
+  }
+}
+
+.filter-menu__container {
+  background-color: $dark-grey-theme;
 }
 
 .forms-table__container {
@@ -40,7 +74,8 @@ a * {
 
   thead th {
     min-width: 70px;
-    max-width: 100px;
+    max-width: 140px;
+    color: $blue-theme;
     border-bottom: 1px solid $grey-theme;
   }
 
@@ -70,18 +105,10 @@ a * {
   width: 5rem;
 }
 
-.controlButtons {
-  text-align: center;
-}
-.savePageBtn {
-  font-size: 22px;
-  font-weight: bold;
-}
 .exportBtn {
   display: inline-block;
   width: 25px;
   height: 30px;
-  // background: url(../src/assets/export.svg);
   background-size: 24px 23px;
   background-repeat: no-repeat;
   background-position: center;
@@ -96,52 +123,6 @@ a * {
   background-repeat: no-repeat;
   background-position: center;
   background-position-y: bottom;
-
-  //&:hover {
-  /*background-color: lightcoral;*/
-  //}
-}
-.loadBtn {
-  display: inline-block;
-  width: 25px;
-  height: 30px;
-  background-size: 16px 24px;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-position-y: bottom;
-}
-
-.clearStorageBtn {
-  position: absolute;
-  right: 1rem;
-}
-
-#editFieldForm {
-  position: absolute;
-  border-radius: 2px;
-  top: 10px;
-  left: 10px;
-  visibility: hidden;
-  border-color: black;
-  border-style: solid;
-  border-width: 3px;
-  padding: 10px;
-  background: white;
-  box-sizing: border-box;
-  min-height: 120px;
-  min-width: 100px;
-}
-
-#editFieldInput {
-  margin: 10px;
-  width: 90%;
-  max-height: 80%;
-  box-sizing: border-box;
-}
-
-#editFieldSaveBtn {
-  display: inline-block;
-  text-align: center;
 }
 
 .c-edit-form__table {
@@ -153,28 +134,68 @@ a * {
     padding: 0.5rem;
     border-radius: 9px;
   }
-  textarea {
-    font-size: $base-font-size;
-    width: 300px;
-    height: 150px;
-  }
-
   .table-label {
     font-weight: bold;
   }
 }
-#textRuler {
-  position: absolute;
-  visibility: hidden;
-  height: auto;
-  width: auto;
-  white-space: nowrap;
+
+textarea.edit-form-preview {
+  font-size: $base-font-size;
+  width: 300px;
+  height: 150px;
+}
+
+textarea.edit-form-comment {
+  font-size: $base-font-size;
+  width: 300px;
+  height: 70px;
 }
 
 .status-text {
-  position: absolute;
+  padding-left: 1rem;
   max-width: $popup-width;
-  bottom: 1rem;
-  left: 1rem;
-  // color: red;
+}
+
+.list-icon-button {
+  cursor: pointer;
+
+  svg {
+    height: 25px;
+
+    path,
+    rect {
+      fill: $blue-theme !important;
+    }
+  }
+
+  &:hover {
+    svg {
+      path,
+      rect {
+        fill: rgb(188, 210, 255) !important;
+      }
+    }
+  }
+}
+
+.help-icon {
+  cursor: pointer;
+
+  svg {
+    height: 20px;
+
+    path,
+    rect {
+      fill: $smoke-theme !important;
+    }
+  }
+
+  &:hover {
+    svg {
+      path,
+      rect {
+        fill: white !important;
+      }
+    }
+  }
 }

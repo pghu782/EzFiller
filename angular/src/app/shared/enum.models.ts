@@ -14,3 +14,8 @@ export enum Mode {
   List = 1,
   Edit = 2
 }
+
+export enum FilterType {
+  Domain = 1,
+  Full = 2
+}

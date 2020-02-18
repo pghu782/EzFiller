@@ -1,17 +1,58 @@
 <!-- Popup container-->
 <div class="main-popup__container" (keydown)="onKeyDown($event)">
-  <ng-container *ngIf="appState.mode == Mode.Edit; then editView; else listView"></ng-container>
   <div
-    class="status-text"
+    class="status-text mb-2"
     [ngClass]="{
-      'text-info': appState.statusType == StatusType.Info,
+      'text-black-50': appState.statusType == StatusType.Info,
       'text-success': appState.statusType == StatusType.Success,
       'text-danger': appState.statusType == StatusType.Error
     }"
   >
     {{ appState.statusText }}
   </div>
+  <ng-container *ngIf="appState.mode == Mode.Edit; then editView; else listView"></ng-container>
+  <ng-container *ngTemplateOutlet="menuBar"></ng-container>
 </div>
+
+<!-- Menu Bar-->
+<ng-template #menuBar>
+  <div class="menu-bar__container">
+    <div class="menu-bar__left-side">
+      <div class="menu-bar__item">
+        <svg-icon src="assets/help-circle.svg" [applyCss]="true" class="help-icon"></svg-icon>
+      </div>
+    </div>
+    <div class="menu-bar__right-side">
+      <div class="menu-bar__item" (click)="clearStorage()">
+        Clear Storage
+      </div>
+      <div class="menu-bar__item">
+        <div ngbDropdown class="d-inline-block">
+          <div class="menu-bar__url-match-toggle" ngbDropdownToggle>URL Matching</div>
+          <div ngbDropdownMenu placement="top-left">
+            <button
+              ngbDropdownItem
+              (click)="switchUrlScheme(FilterType.Full)"
+              [ngClass]="{ 'font-weight-bold': appState.filterType == FilterType.Full }"
+            >
+              Full URL
+            </button>
+            <button
+              ngbDropdownItem
+              (click)="switchUrlScheme(FilterType.Domain)"
+              [ngClass]="{ 'font-weight-bold': appState.filterType == FilterType.Domain }"
+            >
+              Domain
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="menu-bar__item">
+        Import
+      </div>
+    </div>
+  </div>
+</ng-template>
 
 <!--Main form snapshots table-->
 <ng-template #listView>
@@ -20,7 +61,7 @@
       <thead>
         <tr>
           <th></th>
-          <th>Fill Name</th>
+          <th>Snapshot Name</th>
           <th>Hotkey</th>
           <th></th>
         </tr>
@@ -31,7 +72,9 @@
           <ng-container *ngFor="let row of dataSource">
             <tr>
               <td>
-                <img src="assets/arrow-up-solid.svg" (click)="loadFormSnapshot(row)" />
+                <div class="list-icon-button" (click)="loadFormSnapshot(row)">
+                  <svg-icon src="assets/play.svg" [applyCss]="true"></svg-icon>
+                </div>
               </td>
               <td>
                 {{ row.fillName }}
@@ -39,8 +82,14 @@
               </td>
               <td>{{ row.hotkey }}</td>
               <td>
-                <img src="assets/file-export-solid.svg" (click)="editFormSnapshot(row)" />
-                <img src="assets/trash-alt-regular.svg" (click)="deleteFormSnapshot(row)" />
+                <div class="d-flex">
+                  <div class="list-icon-button mr-2" (click)="editFormSnapshot(row)">
+                    <svg-icon src="assets/create.svg" [applyCss]="true"></svg-icon>
+                  </div>
+                  <div class="list-icon-button" (click)="deleteFormSnapshot(row)">
+                    <svg-icon src="assets/trash-bin.svg" [applyCss]="true"></svg-icon>
+                  </div>
+                </div>
               </td>
             </tr>
           </ng-container>
@@ -56,9 +105,6 @@
   <div class="d-flex justify-content-center control-panel__container">
     <input type="text" [(ngModel)]="newFillName" placeholder="Enter name here" />
     <button (click)="saveFill()" class="btn btn-outline-success ml-2">Save!</button>
-    <button (click)="clearStorage()" class="clearStorageBtn btn btn-outline-danger">
-      Clear Storage
-    </button>
   </div>
 </ng-template>
 

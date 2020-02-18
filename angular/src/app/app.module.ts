@@ -3,6 +3,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app-routing.module';
+import { HttpClientModule } from '@angular/common/http';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 import { AppComponent } from './app.component';
 import { TruncatePipe } from './shared/truncate-pipe';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -14,7 +16,16 @@ import { ValidateHotkeyDirective } from './shared/validate-hotkey.directive';
 
 @NgModule({
   declarations: [AppComponent, TruncatePipe, EditFormComponent, DetectChangesDirective, ValidateHotkeyDirective],
-  imports: [CommonModule, NgbModule, BrowserModule, AppRoutingModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    NgbModule,
+    BrowserModule,
+    AppRoutingModule,
+    HttpClientModule,
+    AngularSvgIconModule,
+    FormsModule,
+    RouterModule
+  ],
   providers: [DatePipe],
   bootstrap: [AppComponent]
 })

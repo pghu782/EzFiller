@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 import { TAB_ID } from './shared/tab-id.injector';
 import { FormData, FormSnapshot, AppState } from './shared/app.models';
 import { AppService } from './shared/app.service';
-import { PageCommand, Mode, StatusType } from './shared/enum.models';
+import { PageCommand, Mode, StatusType, FilterType } from './shared/enum.models';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +17,7 @@ import { PageCommand, Mode, StatusType } from './shared/enum.models';
 export class AppComponent implements OnInit {
   public Mode = Mode;
   public StatusType = StatusType;
+  public FilterType = FilterType;
 
   public appState: AppState;
   public currentFormSnapshot: string;
@@ -40,13 +41,11 @@ export class AppComponent implements OnInit {
     public renderer: Renderer2
   ) {
     this.appState = new AppState();
+    this.appState.statusText = 'Form extension initialized.';
   }
 
   ngOnInit() {
-    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      this.currentUrl = tabs[0].url;
-      this.loadFilledPageData(this.currentUrl);
-    });
+    this.querySnapshotData();
 
     this.appService.appState$.subscribe(response => {
       this.appState = response;
@@ -58,11 +57,14 @@ export class AppComponent implements OnInit {
     // this.updateStatusText($event);
   }
 
-  public switchMode(mode: Mode) {
-    this.appService.switchMode(mode);
+  private querySnapshotData() {
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      this.currentUrl = tabs[0].url;
+      this.initSnapshotData(this.currentUrl);
+    });
   }
 
-  public loadFilledPageData(url: string) {
+  private initSnapshotData(url: string) {
     this.appService.getFormSnapshots(url).subscribe(response => {
       this.dataSource = response;
       this._changeDetector.detectChanges();
@@ -102,7 +104,6 @@ export class AppComponent implements OnInit {
           this.appService.setStatus(response.message, StatusType.Error);
         } else {
           console.log('Response received: ' + JSON.stringify(response));
-          // this.updateStatusText("Fields from saved form '" + snap.fillName + "' successfully loaded.");
           this.appService.setStatus(
             "Fields from saved form '" + snap.fillName + "' successfully loaded.",
             StatusType.Info
@@ -119,10 +120,22 @@ export class AppComponent implements OnInit {
     }
   }
 
+  public switchUrlScheme(scheme: FilterType) {
+    this.appService.switchUrlScheme(scheme);
+    this.querySnapshotData();
+  }
+
   public clearStorage() {
-    chrome.storage.local.clear(function() {
-      this.checkChromeError();
+    chrome.storage.local.clear(() => {
+      this.appService.checkChromeError();
+      this.dataSource = [];
+      this.appService.setStatus('Clear all form data!', StatusType.Success);
+      this._changeDetector.detectChanges();
     });
+  }
+
+  public switchMode(mode: Mode) {
+    this.appService.switchMode(mode);
   }
 
   public deleteFormSnapshot(snap: FormData) {
@@ -136,7 +149,6 @@ export class AppComponent implements OnInit {
 
   public editFormSnapshot(snap: FormData) {
     this.currentSnapshot = snap;
-    //this.switchMode(Modes.Edit);
     this.appService.switchMode(Mode.Edit);
     this._changeDetector.detectChanges();
   }

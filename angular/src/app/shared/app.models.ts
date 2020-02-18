@@ -1,4 +1,4 @@
-import { StatusType, Mode } from './enum.models';
+import { StatusType, Mode, FilterType } from './enum.models';
 
 export interface FormSnapshot {
   content: any[];
@@ -21,10 +21,12 @@ export class AppState {
   statusText: string;
   statusType: StatusType;
   mode: Mode;
+  filterType: FilterType;
 
   constructor() {
     this.statusText = '';
     this.statusType = StatusType.Info;
     this.mode = Mode.List;
+    this.filterType = FilterType.Full;
   }
 }

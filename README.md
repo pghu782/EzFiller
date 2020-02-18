@@ -12,4 +12,5 @@ Chrome extension to quickly save and reload form inputs.
 
 ## Credits
 
+- Icons: Ionicons
 - Initial scaffolding: https://github.com/larscom/angular-chrome-extension

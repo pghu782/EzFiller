@@ -4,7 +4,7 @@
       <table class="c-edit-form__table">
         <tr>
           <td class="table-label">
-            <div><label for="fillName">Fill name</label></div>
+            <div><label for="fillName">Snapshot name</label></div>
           </td>
           <td>
             <div>
@@ -53,7 +53,23 @@
         <tr>
           <td class="table-label">JSON</td>
           <td>
-            <textarea class="form-control" name="preview" id="preview" [(ngModel)]="snapshot.preview"></textarea>
+            <textarea
+              class="form-control edit-form-preview"
+              name="preview"
+              id="preview"
+              [(ngModel)]="snapshot.preview"
+            ></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td class="table-label">Comments</td>
+          <td>
+            <textarea
+              class="form-control edit-form-comment"
+              name="comment"
+              id="comment"
+              [(ngModel)]="snapshot.comment"
+            ></textarea>
           </td>
         </tr>
       </table>

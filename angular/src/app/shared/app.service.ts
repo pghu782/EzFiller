@@ -1,7 +1,7 @@
 import { FormData, AppState } from './app.models';
-import { Injectable, ChangeDetectorRef } from '@angular/core';
-import { Observable, BehaviorSubject, of, Subject } from 'rxjs';
-import { StatusType, Mode } from './enum.models';
+import { Injectable } from '@angular/core';
+import { Observable, BehaviorSubject, Subject } from 'rxjs';
+import { StatusType, Mode, FilterType } from './enum.models';
 
 @Injectable({
   providedIn: 'root'
@@ -44,26 +44,31 @@ export class AppService {
     return this._data$;
   }
 
-  public urlMatch(targetUrl, storedUrl) {
-    if (!storedUrl) {
-      return false;
+  public switchUrlScheme(scheme: FilterType) {
+    this.fullState.filterType = scheme;
+    switch (scheme) {
+      case FilterType.Domain:
+        this.setStatus('Switching to domain URL filtering...');
+        break;
+      case FilterType.Full:
+        this.setStatus('Switching to full URL filtering...');
+        break;
+      default:
+        break;
     }
+  }
 
-    var filterType = 'FULL';
+  private urlMatch(targetUrl, storedUrl) {
     var url1 = this.parseUri(targetUrl.toLowerCase());
     var url2 = this.parseUri(storedUrl.toLowerCase());
 
     if (storedUrl === '*') {
       return true;
-    } else if (filterType === 'FILTER_BY_DOMAIN') {
+    } else if (this.fullState.filterType === FilterType.Domain) {
       return url1.host === url2.host;
-    } else if (filterType === 'FULL') {
-      //return (url1.protocol + url1.host + url1.path) == (url2.protocol + url2.host + url2.path);
+    } else if (this.fullState.filterType === FilterType.Full) {
       return url1.host + url1.path == url2.host + url2.path;
-    } else if (filterType === 'FILTER_BY_FULL') {
-      //return current == storage;
     } else {
-      console.error('Filter has not been set: ' + filterType);
       return false;
     }
   }
