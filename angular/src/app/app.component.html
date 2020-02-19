@@ -83,7 +83,7 @@
               <td>{{ row.hotkey }}</td>
               <td>
                 <div class="d-flex">
-                  <div class="list-icon-button mr-2" (click)="editFormSnapshot(row)">
+                  <div class="list-icon-button mr-2" (click)="editSnapshot(row)">
                     <svg-icon src="assets/create.svg" [applyCss]="true"></svg-icon>
                   </div>
                   <div class="list-icon-button" (click)="deleteFormSnapshot(row)">
@@ -96,19 +96,22 @@
         </ng-template>
         <ng-template #emptyRow>
           <tr>
-            <td>No results found!</td>
+            <td></td>
+            <td>
+              <div>No records for this page yet</div>
+            </td>
+            <td></td>
           </tr>
         </ng-template>
       </tbody>
     </table>
   </div>
   <div class="d-flex justify-content-center control-panel__container">
-    <input type="text" [(ngModel)]="newFillName" placeholder="Enter name here" />
-    <button (click)="saveFill()" class="btn btn-outline-success ml-2">Save!</button>
+    <button (click)="saveSnapshot()" class="btn btn-outline-success ml-2">Add New</button>
   </div>
 </ng-template>
 
 <!--Form snapshot edit-->
 <ng-template #editView>
-  <app-edit-form [snapshot]="this.currentSnapshot"></app-edit-form>
+  <edit-form [snapshot]="this.currentSnapshot" [url]="currentUrl"></edit-form>
 </ng-template>

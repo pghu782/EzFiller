@@ -19,3 +19,8 @@ export enum FilterType {
   Domain = 1,
   Full = 2
 }
+
+export enum Action {
+  Create = 1,
+  Edit = 2
+}

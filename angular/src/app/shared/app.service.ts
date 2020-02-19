@@ -1,17 +1,19 @@
 import { FormData, AppState } from './app.models';
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject, Subject } from 'rxjs';
-import { StatusType, Mode, FilterType } from './enum.models';
+import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
+import { StatusType, Mode, FilterType, PageCommand, Action } from './enum.models';
+import { Form } from '@angular/forms';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppService {
   public form: FormData;
-  private readonly dataSubject: BehaviorSubject<Array<FormData>>;
   private readonly _data$: Observable<Array<FormData>>;
 
-  public readonly currentMode$ = new Subject<Mode>();
+  public readonly dataSource$ = new Subject<FormData>();
+
+  public readonly detectDisplayChanges$ = new Subject<boolean>();
   public readonly statusText$ = new Subject<string>();
   public readonly statusType$ = new Subject<StatusType>();
   public statusType: StatusType;
@@ -20,28 +22,46 @@ export class AppService {
   private fullState: AppState;
 
   constructor() {
-    this.dataSubject = new BehaviorSubject([]);
-    this._data$ = this.dataSubject.asObservable();
     this.fullState = new AppState();
-    // this.currentMode = Modes.List;
   }
 
-  public getFormSnapshots(url: string) {
-    return new Observable<FormData[]>(subscriber => {
+  public getSnapshots(url: string) {
+    return new Observable(subscriber => {
+      const handler = e => subscriber.next(e);
+
       chrome.storage.local.get(null, (items: FormData[]) => {
-        let dataArr: FormData[] = [];
         for (var key in items) {
           if (this.urlMatch(url, items[key].url)) {
-            dataArr.push(items[key]);
+            this.dataSource$.next(items[key]);
           }
         }
-        subscriber.next(dataArr);
+        subscriber.next();
       });
     });
   }
 
-  get myData$(): Observable<Array<FormData>> {
-    return this._data$;
+  public initSnapshot$() {
+    return new Observable(subscriber => {
+      const handler = e => subscriber.next(e);
+      chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        chrome.tabs.sendMessage(tabs[0].id, { command: PageCommand.SaveForm }, handler);
+      });
+    });
+  }
+
+  public refreshDisplay() {
+    this.detectDisplayChanges$.next(true);
+  }
+
+  public saveSnapshot$(snapshot: FormData) {
+    return new Observable(subscriber => {
+      chrome.storage.local.set({ [snapshot.id]: snapshot }, () => {
+        if (this.fullState.action == Action.Create) {
+          this.dataSource$.next(snapshot);
+        }
+        subscriber.next();
+      });
+    });
   }
 
   public switchUrlScheme(scheme: FilterType) {
@@ -107,6 +127,11 @@ export class AppService {
 
   public switchMode(mode: Mode) {
     this.fullState.mode = mode;
+    this.appState$.next(this.fullState);
+  }
+
+  public switchAction(action: Action) {
+    this.fullState.action = action;
     this.appState$.next(this.fullState);
   }
 
