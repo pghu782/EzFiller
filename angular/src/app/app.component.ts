@@ -1,9 +1,8 @@
 // prettier-ignore
-import { ChangeDetectorRef,Component,Inject,
-  OnInit, Renderer2 } from "@angular/core";
+import { ChangeDetectorRef,Component,Inject,OnInit, Renderer2 } from "@angular/core";
 import { Router } from '@angular/router';
 import { TAB_ID } from './shared/tab-id.injector';
-import { FormData, FormSnapshot, AppState } from './shared/app.models';
+import { FormData, AppState } from './shared/app.models';
 import { AppService } from './shared/app.service';
 import { PageCommand, Mode, StatusType, FilterType, Action } from './shared/enum.models';
 
@@ -25,11 +24,6 @@ export class AppComponent implements OnInit {
   public currentSnapshot: FormData;
 
   readonly tabId = this._tabId;
-
-  // public snapshotSubject = new Subject<FormData>();
-  // readonly snapshot$ = this.snapshotSubject
-  //   .asObservable()
-  //   .pipe(tap(() => setTimeout(() => this._changeDetector.detectChanges())));
 
   constructor(
     @Inject(TAB_ID) private readonly _tabId: number,
@@ -59,9 +53,9 @@ export class AppComponent implements OnInit {
       this._changeDetector.detectChanges();
 
       // this.dataSource.forEach(element => {
-      //   if (element.hotkey) {
-      //     this.bindHotKeys(element.hotkey, element.id);
-      //   }
+      if (response.hotkey) {
+        this.bindHotKeys(response.hotkey, response.id);
+      }
       // });
     });
   }
@@ -124,6 +118,26 @@ export class AppComponent implements OnInit {
     });
   }
 
+  public importSnapshot() {
+    (document.querySelector('#importHiddenInput') as HTMLInputElement).click();
+  }
+
+  public handleImportFile($event) {
+    this.appService.clearStatus();
+    const files = $event.target.files;
+    if (files[0]) {
+      if (!files[0].type.match('json')) {
+        this.appService.setStatus('Only .json import is supported.', StatusType.Error);
+        return;
+      }
+
+      this.appService.importFile$(files[0]).subscribe((snap: FormData) => {
+        snap.url = this.currentUrl;
+        this.editSnapshot(snap, Action.Create);
+      });
+    }
+  }
+
   public deleteFormSnapshot(snap: FormData) {
     chrome.storage.local.remove(snap.id, () => {
       if (this.appService.checkChromeError()) return;
@@ -133,10 +147,10 @@ export class AppComponent implements OnInit {
     });
   }
 
-  public editSnapshot(snap: FormData) {
+  public editSnapshot(snap: FormData, action: Action = Action.Edit) {
     this.currentSnapshot = snap;
     this.appService.switchMode(Mode.Edit);
-    this.appService.switchAction(Action.Edit);
+    this.appService.switchAction(action);
     this._changeDetector.detectChanges();
   }
 

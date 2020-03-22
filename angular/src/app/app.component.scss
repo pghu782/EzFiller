@@ -6,6 +6,7 @@ $light-blue-theme: #dceeff;
 $dark-grey-theme: #dcdcdc;
 $grey-theme: rgb(221, 218, 218);
 $smoke-theme: rgba(0, 0, 0, 0.75);
+$error-color: red;
 
 /* HTML Tag styles */
 table,
@@ -154,6 +155,10 @@ textarea.edit-form-comment {
 .status-text {
   padding-left: 1rem;
   max-width: $popup-width;
+}
+
+.form-error {
+  color: $error-color;
 }
 
 .list-icon-button {

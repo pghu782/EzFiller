@@ -1,10 +1,5 @@
 import { StatusType, Mode, FilterType, Action } from './enum.models';
 
-export interface FormSnapshot {
-  content: any[];
-  error: boolean;
-}
-
 export class FormData {
   id: string;
   url: string;

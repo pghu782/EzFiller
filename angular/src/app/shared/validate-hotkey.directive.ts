@@ -40,15 +40,18 @@ export class ValidateHotkeyDirective implements Validator {
 
   public hotkeyValidator(): ValidatorFn {
     return (c: FormControl) => {
-      console.log(c.value);
-      //let isValid = /^[_a-z0-9]+(\.[_a-z0-9]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/.test(c.value);
-      let isValid = /^Ctrl\s\+\s[a-z]$/.test(c.value);
-      if (isValid) {
-        return null;
-      } else {
-        return {
-          appValidateHotkey: true
-        };
+      // console.log(c.value);
+      if (c != null && c.value != null) {
+        if (c.value.trim == '') return null;
+        //let isValid = /^[_a-z0-9]+(\.[_a-z0-9]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/.test(c.value);
+        let isValid = /^Ctrl\s\+\s[a-z]$/.test(c.value);
+        if (isValid) {
+          return null;
+        } else {
+          return {
+            appValidateHotkey: true
+          };
+        }
       }
     };
   }

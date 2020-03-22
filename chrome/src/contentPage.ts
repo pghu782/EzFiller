@@ -1,4 +1,4 @@
-import { FormData, FormSnapshot } from '../../angular/src/app/shared/app.models';
+import { FormData } from '../../angular/src/app/shared/app.models';
 import { PageCommand } from '../../angular/src/app/shared/enum.models';
 
 // chrome.runtime.onMessage.addListener((request, sender, respond) => {

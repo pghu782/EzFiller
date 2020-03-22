@@ -1,6 +1,6 @@
 <div *ngIf="snapshot" class="c-edit-form__container">
   <div class="d-flex justify-content-center">
-    <form name="mainForm" #mainForm="ngForm">
+    <form name="editForm" #editForm="ngForm">
       <table class="c-edit-form__table">
         <tr>
           <td class="table-label">
@@ -17,8 +17,10 @@
                 #fillName="ngModel"
                 [detectChanges]
               />
-              <div style="color:red" *ngIf="fillName.errors">
-                <div *ngIf="fillName.errors.required">Fill Name is required</div>
+              <div class="form-error" *ngIf="fillName.errors">
+                <div *ngIf="(fillName.dirty || fillName.touched) && fillName.errors.required">
+                  Snapshot Name is required
+                </div>
               </div>
             </div>
           </td>
@@ -37,17 +39,30 @@
               #hotkey="ngModel"
               appValidateHotkey
             />
-            <div>{{ testCtrl }}</div>
-
-            <div style="color:red" *ngIf="hotkey.errors">
-              <div *ngIf="hotkey.errors.appValidateHotkey">Invalid format, must be Ctrl & a lowercase letter.</div>
+            <div class="form-error" *ngIf="hotkey.errors">
+              <div *ngIf="(hotkey.dirty || hotkey.touched) && hotkey.errors.appValidateHotkey">
+                Invalid format, must be Ctrl & a lowercase letter.
+              </div>
             </div>
           </td>
         </tr>
         <tr>
           <td class="table-label">URL</td>
           <td>
-            <input type="text" name="url" id="url" class="form-control" [(ngModel)]="snapshot.url" required />
+            <input
+              type="text"
+              name="url"
+              id="url"
+              class="form-control"
+              [(ngModel)]="snapshot.url"
+              required
+              #url="ngModel"
+            />
+            <div class="form-error" *ngIf="url.errors">
+              <div *ngIf="(url.dirty || url.touched) && url.errors.required">
+                URL is required.
+              </div>
+            </div>
           </td>
         </tr>
         <tr>
@@ -75,7 +90,10 @@
       </table>
 
       <div class="d-flex m-2 justify-content-center ">
-        <button class="btn btn-outline-primary m-2" (click)="saveSnapshot()">Save</button>
+        <!-- <button class="btn btn-outline-primary m-2" (click)="saveSnapshot()" [disabled]="!editForm.valid"> -->
+        <button class="btn btn-outline-primary m-2" (click)="saveSnapshot()">
+          Save
+        </button>
         <button class="btn btn-outline-danger m-2" (click)="cancelEditFormSnapShot()">Cancel</button>
       </div>
     </form>

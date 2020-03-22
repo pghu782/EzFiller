@@ -47,8 +47,15 @@
           </div>
         </div>
       </div>
-      <div class="menu-bar__item">
+      <div class="menu-bar__item" (click)="importSnapshot()">
         Import
+        <input
+          type="file"
+          id="importHiddenInput"
+          class="collapse"
+          (change)="handleImportFile($event)"
+          accept="application/*"
+        />
       </div>
     </div>
   </div>

@@ -1,22 +1,17 @@
 import { FormData, AppState } from './app.models';
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, of, Subscriber } from 'rxjs';
 import { StatusType, Mode, FilterType, PageCommand, Action } from './enum.models';
 import { Form } from '@angular/forms';
+import { tryParseJSON } from './helpers';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppService {
-  public form: FormData;
-  private readonly _data$: Observable<Array<FormData>>;
-
   public readonly dataSource$ = new Subject<FormData>();
-
   public readonly detectDisplayChanges$ = new Subject<boolean>();
   public readonly statusText$ = new Subject<string>();
-  public readonly statusType$ = new Subject<StatusType>();
-  public statusType: StatusType;
   public readonly appState$ = new Subject<AppState>();
 
   private fullState: AppState;
@@ -64,6 +59,36 @@ export class AppService {
     });
   }
 
+  public importFile$(file: File) {
+    const fileReader = new FileReader();
+    fileReader.readAsText(file);
+
+    return new Observable((observer: Subscriber<any>): void => {
+      fileReader.onload = (ev: ProgressEvent): void => {
+        const importJson = tryParseJSON((ev.target as any).result);
+        if (!importJson) {
+          this.setStatus('Invalid JSON imported.', StatusType.Error);
+          observer.error('Invalid JSON imported.');
+        }
+
+        const snapshot = {
+          id: '',
+          fillName: file.name,
+          url: '',
+          fill: importJson,
+          preview: (ev.target as any).result,
+          comment: ''
+        };
+        observer.next(snapshot);
+        observer.complete();
+      };
+
+      fileReader.onerror = (error): void => {
+        observer.error(error);
+      };
+    });
+  }
+
   public switchUrlScheme(scheme: FilterType) {
     this.fullState.filterType = scheme;
     switch (scheme) {
@@ -82,6 +107,7 @@ export class AppService {
     var url1 = this.parseUri(targetUrl.toLowerCase());
     var url2 = this.parseUri(storedUrl.toLowerCase());
 
+    // TODO: implement versatile URL matching
     if (storedUrl === '*') {
       return true;
     } else if (this.fullState.filterType === FilterType.Domain) {
@@ -117,6 +143,10 @@ export class AppService {
       host: a.hostname,
       path: a.pathname
     };
+  }
+
+  public clearStatus() {
+    this.setStatus('');
   }
 
   public setStatus(text: string, type?: StatusType) {

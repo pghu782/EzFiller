@@ -1,8 +1,8 @@
 import { Component, OnInit, Input, OnChanges, ChangeDetectorRef, Renderer2 } from '@angular/core';
 import { FormData } from '../shared/app.models';
 import { AppService } from '../shared/app.service';
-import { NgForm, Form } from '@angular/forms';
-import { Subscription, Observable, Subject, Subscriber } from 'rxjs';
+import { NgForm } from '@angular/forms';
+import { Subscription, Subject } from 'rxjs';
 import { tryParseJSON } from '../shared/helpers';
 import { Mode, StatusType, Action } from '../shared/enum.models';
 import { DatePipe } from '@angular/common';
@@ -19,14 +19,12 @@ export class EditFormComponent implements OnInit, OnChanges {
   @Input()
   public url;
 
-  private action: Action;
-
-  //@ViewChild('f')
   public form: NgForm;
-
   public testCtrl: string = '';
   public hotkeyChanged = new Subject<string>();
   public subscription = new Subscription();
+
+  private action: Action;
 
   constructor(
     private _changeDetector: ChangeDetectorRef,
@@ -103,6 +101,8 @@ export class EditFormComponent implements OnInit, OnChanges {
       this.snapshot.id = this.datePipe.transform(new Date(), 'yyyy-MM-dd') + '-' + uuid.v4();
     }
 
+    this.snapshot.url = this.parseUrl(this.snapshot.url);
+
     this.appService.saveSnapshot$(this.snapshot).subscribe(response => {
       if (this.appService.checkChromeError()) return;
       this.appService.setStatus('Saved form!', StatusType.Success);
@@ -114,6 +114,14 @@ export class EditFormComponent implements OnInit, OnChanges {
   public cancelEditFormSnapShot() {
     this.appService.switchMode(Mode.List);
     this.appService.setStatus('');
+  }
+
+  private parseUrl(url: string) {
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'http://' + url;
+    }
+
+    return url;
   }
 
   private validateForm() {
